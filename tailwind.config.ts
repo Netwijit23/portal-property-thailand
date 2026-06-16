@@ -9,8 +9,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        paper: "#FAFAF8",
+        ink: "#0A0A0A",
+        gold: "#B8935A",
+        forest: "#1A3A2A",
+        muted: "#8A8680",
+        border: "#E8E4DC",
+        surface: "#F5F2EC",
+      },
+      fontFamily: {
+        cormorant: ["'Cormorant Garamond'", "serif"],
+        sans: ["'DM Sans'", "sans-serif"],
+      },
+      borderRadius: {
+        "2xl": "1rem",
+        "3xl": "1.5rem",
       },
     },
   },
