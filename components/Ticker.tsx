@@ -15,7 +15,7 @@ export default function Ticker({ listings, badges }: Props) {
   const items = listings.map((l, i) => ({
     badge: (badges[i] || "Hot") as HotBadge,
     name: l.title,
-    price: formatHotPrice(l),
+    price: formatHotPrice(l).primary,
   }));
 
   // Double for seamless loop

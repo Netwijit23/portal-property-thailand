@@ -10,13 +10,13 @@ export type HotBadge = "Hot" | "New" | "Reduced";
 
 type Props = {
   listing: Listing;
-  badge: HotBadge;
-  onEnquiry: (listing: Listing) => void;
+  badge?: HotBadge;
+  onEnquiry?: (listing: Listing) => void;
 };
+
 
 export function formatHotPrice(listing: Listing): { primary: string; secondary: string | null } {
   const isBoth = listing.listing_type === "both";
-  const isRent = listing.listing_type === "rent";
 
   const primary = isBoth || listing.listing_type === "sale"
     ? listing.sale_price ? `฿${listing.sale_price.toLocaleString()}` : null
@@ -35,7 +35,8 @@ function formatAvailableFrom(date: string | null): string {
   return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 }
 
-export default function HotListingCard({ listing, badge, onEnquiry }: Props) {
+export default function HotListingCard(props: Props) {
+  const listing = props.listing;
   const [saved, setSaved] = useState(false);
   const photo = listing.photos?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80";
   const { primary, secondary } = formatHotPrice(listing);

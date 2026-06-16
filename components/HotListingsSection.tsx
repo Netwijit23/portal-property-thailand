@@ -54,7 +54,7 @@ export default function HotListingsSection({ listings, badges }: Props) {
           listing={{
             id: enquiryListing.id,
             title: enquiryListing.title,
-            price: formatHotPrice(enquiryListing),
+            price: formatHotPrice(enquiryListing).primary,
           }}
           onClose={() => setEnquiryListing(null)}
         />
