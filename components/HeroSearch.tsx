@@ -4,21 +4,25 @@ import { useRouter } from "next/navigation";
 import { Search, ChevronDown, X } from "lucide-react";
 
 // ── Location suggestions ─────────────────────────────────────────────────────
+// Station lists follow the real line topology (Siam is the interchange hub)
 const LOCATION_GROUPS: { label: string; icon: string; items: string[] }[] = [
   {
     label: "BTS Sukhumvit Line",
     icon: "🟢",
     items: [
-      "Mo Chit", "Ari", "Saphan Kwai", "Nana", "Asok",
-      "Phrom Phong", "Thong Lo", "Ekkamai", "On Nut", "Phra Khanong",
+      "Mo Chit", "Saphan Khwai", "Ari", "Sanam Pao", "Victory Monument",
+      "Phaya Thai", "Ratchathewi", "Siam", "Chit Lom", "Phloen Chit",
+      "Nana", "Asok", "Phrom Phong", "Thong Lo", "Ekkamai",
+      "Phra Khanong", "On Nut",
     ],
   },
   {
     label: "BTS Silom Line",
     icon: "🟢",
     items: [
-      "Chit Lom", "Ploenchit", "Siam", "Sala Daeng",
-      "Chong Nonsi", "Surasak", "Wongwian Yai",
+      "Siam", "Ratchadamri", "Sala Daeng", "Chong Nonsi",
+      "Saint Louis", "Surasak", "Saphan Taksin",
+      "Krung Thon Buri", "Wongwian Yai",
     ],
   },
   {
