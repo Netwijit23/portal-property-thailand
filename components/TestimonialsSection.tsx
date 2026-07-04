@@ -6,9 +6,7 @@ import Reveal from "./Reveal";
 const GOOGLE_REVIEWS_URL =
   "https://www.google.com/search?q=Portal+Property+Thailand+reviews";
 
-// Replace with the short "Ask for reviews" link from the Google Business
-// profile (g.page/r/…/review) so the review form opens directly.
-const GOOGLE_WRITE_REVIEW_URL = GOOGLE_REVIEWS_URL;
+const GOOGLE_WRITE_REVIEW_URL = "https://g.page/r/Cf-uZ_ZcPJ37EBM/review";
 
 const REVIEWS = [
   {
