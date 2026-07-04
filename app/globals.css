@@ -23,6 +23,12 @@
     color: #0A0A0A;
     font-family: 'DM Sans', sans-serif;
   }
+  /* Block long-press save / drag on all photos site-wide */
+  img {
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+    user-select: none;
+  }
 }
 
 @layer utilities {

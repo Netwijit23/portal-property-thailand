@@ -1,8 +1,15 @@
 "use client";
-import type { ReactNode } from "react";
+import type { ReactNode, CSSProperties } from "react";
+
+const noCallout: CSSProperties = {
+  WebkitTouchCallout: "none",
+  WebkitUserSelect: "none",
+  userSelect: "none",
+} as CSSProperties;
 
 /**
- * Wraps any image container and overlays a subtle brand watermark.
+ * Wraps any image container, overlays a subtle brand watermark, and blocks
+ * the save paths (long-press save on mobile, right-click, drag-to-desktop).
  * Usage: <PhotoWatermark><img ... /></PhotoWatermark>
  */
 export default function PhotoWatermark({
@@ -22,8 +29,23 @@ export default function PhotoWatermark({
   const textSize = size === "md" ? "text-[11px] tracking-[3px]" : "text-[9px] tracking-[2.5px]";
 
   return (
-    <div className="relative w-full h-full">
+    <div
+      className="relative w-full h-full select-none"
+      style={noCallout}
+      onContextMenu={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+    >
       {children}
+      {/* Transparent shield: long-press and right-click land on this div
+          instead of the image, so "Save Image" never appears. Taps still
+          bubble up to the surrounding link. */}
+      <div
+        className="absolute inset-0 z-[5]"
+        aria-hidden
+        style={noCallout}
+        onContextMenu={(e) => e.preventDefault()}
+        onDragStart={(e) => e.preventDefault()}
+      />
       <div
         className={`absolute ${posClass} pointer-events-none select-none z-10`}
         aria-hidden
