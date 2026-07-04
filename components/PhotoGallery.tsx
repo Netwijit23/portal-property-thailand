@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Grid2X2 } from "lucide-react";
 import PhotoWatermark from "@/components/PhotoWatermark";
@@ -42,8 +42,13 @@ export default function PhotoGallery({ photos, title }: { photos: string[]; titl
 
   return (
     <>
-      {/* Main gallery grid */}
-      <div className="relative bg-[#0A0A0A]">
+      {/* ── Mobile: full-bleed swipeable carousel ── */}
+      <div className="md:hidden relative bg-[#0A0A0A]">
+        <MobileCarousel photos={photos} title={title} onOpen={setLightboxIndex} />
+      </div>
+
+      {/* ── Desktop: gallery grid ── */}
+      <div className="hidden md:block relative bg-[#0A0A0A]">
         {photos.length === 1 ? (
           <div className="relative h-[60vh] cursor-pointer" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()}>
             <PhotoWatermark size="md">
@@ -160,5 +165,78 @@ export default function PhotoGallery({ photos, title }: { photos: string[]; titl
         </div>
       )}
     </>
+  );
+}
+
+// ─── Mobile carousel: edge-to-edge snap scroll with counter ──────────────────
+function MobileCarousel({
+  photos,
+  title,
+  onOpen,
+}: {
+  photos: string[];
+  title: string;
+  onOpen: (i: number) => void;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [current, setCurrent] = useState(0);
+
+  function onScroll() {
+    const el = trackRef.current;
+    if (!el) return;
+    setCurrent(Math.round(el.scrollLeft / el.clientWidth));
+  }
+
+  return (
+    <div className="relative">
+      <div
+        ref={trackRef}
+        onScroll={onScroll}
+        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+        style={{ WebkitOverflowScrolling: "touch" }}
+      >
+        {photos.map((photo, i) => (
+          <div
+            key={i}
+            className="relative w-full h-[62vh] min-h-[380px] shrink-0 snap-center"
+            onClick={() => onOpen(i)}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            <PhotoWatermark size="md">
+              <Image
+                src={photo}
+                alt={i === 0 ? title : `${title} — photo ${i + 1}`}
+                fill
+                className="object-cover"
+                priority={i === 0}
+                sizes="100vw"
+                {...noSave}
+              />
+            </PhotoWatermark>
+            {/* Soft cinematic gradient at the base */}
+            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#0A0A0A]/45 to-transparent pointer-events-none" />
+          </div>
+        ))}
+      </div>
+
+      {/* Counter pill */}
+      <div className="absolute bottom-4 right-4 font-sans text-[11px] tracking-[1px] text-white px-3 py-1.5 rounded-full bg-black/45 backdrop-blur-md pointer-events-none">
+        {current + 1} / {photos.length}
+      </div>
+
+      {/* Dot indicators */}
+      {photos.length > 1 && photos.length <= 8 && (
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-none">
+          {photos.map((_, i) => (
+            <span
+              key={i}
+              className={`rounded-full transition-all duration-300 ${
+                i === current ? "w-4 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
