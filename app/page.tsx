@@ -10,6 +10,7 @@ import HotListingsSection from "@/components/HotListingsSection";
 // import HeroBackground from "@/components/HeroBackground"; // slideshow option
 
 import BTSMap from "@/components/BTSMap";
+import StatsSection from "@/components/StatsSection";
 import FloatingContact from "@/components/FloatingContact";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
@@ -189,6 +190,8 @@ export default async function HomePage() {
         {/* ─── HOT LISTINGS ─────────────────────────────────────── */}
         <HotListingsSection listings={listings} badges={badges} />
 
+        {/* ─── WHY US ───────────────────────────────────────────── */}
+        <StatsSection />
 
         {/* ─── BTS ZONE GUIDE ───────────────────────────────────── */}
         <BTSMap />

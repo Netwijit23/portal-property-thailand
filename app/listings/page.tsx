@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ListingCard from "@/components/ListingCard";
 import ListingsFilters from "@/components/ListingsFilters";
+import Reveal from "@/components/Reveal";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
 
@@ -187,8 +188,10 @@ function ListingsGrid({
     <div>
       <p className="font-sans text-sm text-[#8A8680] mb-6">{filtered.length} properties</p>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {filtered.map((listing) => (
-          <ListingCard key={listing.id} listing={listing} />
+        {filtered.map((listing, i) => (
+          <Reveal key={listing.id} delay={(i % 3) * 80}>
+            <ListingCard listing={listing} />
+          </Reveal>
         ))}
       </div>
     </div>

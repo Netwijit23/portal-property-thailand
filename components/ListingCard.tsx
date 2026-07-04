@@ -31,10 +31,10 @@ export default function ListingCard({ listing }: { listing: Listing }) {
 
   return (
     <Link href={`/listings/${listing.id}`} className="group block">
-      <div className="bg-white border border-[#E8E4DC] overflow-hidden transition-all duration-300 group-hover:shadow-[0_8px_32px_rgba(0,0,0,0.10)] flex flex-col">
+      <div className="bg-white border border-[#E8E4DC] rounded-xl overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] flex flex-col">
 
         {/* Photo */}
-        <div className="relative h-[220px] flex-shrink-0 overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
+        <div className="relative h-[260px] flex-shrink-0 overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
           <PhotoWatermark>
             <Image
               src={photo}
@@ -116,9 +116,14 @@ export default function ListingCard({ listing }: { listing: Listing }) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 mt-auto border-t border-[#E8E4DC] flex justify-end">
-          <span className="font-sans text-[10px] tracking-widest uppercase text-[#B8935A]">
-            View →
+        <div className="px-5 py-3 mt-auto border-t border-[#E8E4DC] flex justify-between items-center">
+          {listing.zone && (
+            <span className="font-sans text-[10px] tracking-wide text-[#8A8680] truncate mr-3">
+              {listing.zone}
+            </span>
+          )}
+          <span className="font-sans text-[10px] tracking-[2px] uppercase text-[#B8935A] shrink-0 transition-all group-hover:tracking-[3px]">
+            View Property
           </span>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
 const NAV_LINKS = [
@@ -13,28 +14,39 @@ const NAV_LINKS = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 10);
+    const handler = () => setScrolled(window.scrollY > 60);
+    handler();
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
+  // Transparent over the homepage hero; frosted white everywhere else / on scroll
+  const transparent = pathname === "/" && !scrolled;
+
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 bg-white/[0.96] backdrop-blur-md border-b border-[#E8E4DC] transition-shadow duration-300 ${
-          scrolled ? "shadow-[0_2px_24px_rgba(0,0,0,0.08)]" : ""
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          transparent
+            ? "bg-transparent border-b border-white/10"
+            : "bg-white/[0.96] backdrop-blur-md border-b border-[#E8E4DC]"
+        } ${scrolled ? "shadow-[0_2px_24px_rgba(0,0,0,0.08)]" : ""}`}
         style={{ height: 60 }}
       >
         <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between relative">
           {/* Logo */}
           <Link href="/" className="flex items-baseline gap-[3px] z-10">
-            <span className="font-cormorant font-bold text-[20px] tracking-[2px] text-[#0A0A0A] uppercase">
+            <span className={`font-cormorant font-bold text-[20px] tracking-[2px] uppercase transition-colors duration-300 ${
+              transparent ? "text-white" : "text-[#0A0A0A]"
+            }`}>
               PORTAL
             </span>
-            <span className="font-cormorant font-light text-[20px] tracking-[2px] text-[#0A0A0A] uppercase">
+            <span className={`font-cormorant font-light text-[20px] tracking-[2px] uppercase transition-colors duration-300 ${
+              transparent ? "text-[#E5C795]" : "text-[#0A0A0A]"
+            }`}>
               PROPERTY
             </span>
           </Link>
@@ -45,7 +57,11 @@ export default function Navbar() {
               <Link
                 key={label}
                 href={href}
-                className="font-sans text-[11px] uppercase tracking-[1.5px] text-[#8A8680] hover:text-[#0A0A0A] transition-colors"
+                className={`font-sans text-[11px] uppercase tracking-[1.5px] transition-colors duration-300 ${
+                  transparent
+                    ? "text-white/80 hover:text-white"
+                    : "text-[#8A8680] hover:text-[#0A0A0A]"
+                }`}
               >
                 {label}
               </Link>
@@ -55,14 +71,18 @@ export default function Navbar() {
           {/* CTA button */}
           <Link
             href="/submit"
-            className="hidden md:inline-flex font-sans text-[13px] font-medium px-5 py-2 rounded-full bg-[#B8935A] text-white hover:bg-[#a07d4a] transition-colors z-10"
+            className={`hidden md:inline-flex font-sans text-[13px] font-medium px-5 py-2 rounded-full transition-all duration-300 z-10 ${
+              transparent
+                ? "bg-white/15 text-white border border-white/30 backdrop-blur-md hover:bg-white/25"
+                : "bg-[#B8935A] text-white hover:bg-[#a07d4a]"
+            }`}
           >
             List a Property
           </Link>
 
           {/* Hamburger */}
           <button
-            className="md:hidden text-[#0A0A0A] z-10"
+            className={`md:hidden z-10 transition-colors duration-300 ${transparent ? "text-white" : "text-[#0A0A0A]"}`}
             onClick={() => setOpen(true)}
             aria-label="Open menu"
           >

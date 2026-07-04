@@ -13,6 +13,7 @@ import { Bed, Bath, Maximize2, MapPin, Building2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import AdminEditButton from "@/components/AdminEditButton";
+import StickyEnquireBar from "@/components/StickyEnquireBar";
 
 // Mock data preserved for local development — not used in production
 /* const MOCK_LISTINGS: Listing[] = [
@@ -196,6 +197,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       <Suspense fallback={null}>
         <AdminEditButton listingId={listing.id} />
       </Suspense>
+      <StickyEnquireBar title={displayTitle} price={price} />
       <ListingTracker listing={{
         id: listing.id,
         title: displayTitle,
@@ -326,7 +328,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             </div>
 
             {/* Lead form sidebar */}
-            <aside className="lg:w-80 shrink-0">
+            <aside id="lead-form" className="lg:w-80 shrink-0">
               <LeadForm
                 listingId={listing.id}
                 listingTitle={displayTitle}
