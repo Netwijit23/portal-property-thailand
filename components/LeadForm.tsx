@@ -6,6 +6,7 @@ import { Loader2, Check, Phone, MessageCircle } from "lucide-react";
 const CONTACT_METHODS = ["Phone", "WhatsApp", "LINE"] as const;
 const TIMELINES = ["ASAP", "Within 1 month", "1–3 months", "3+ months"];
 const BUDGETS = ["Around listed price", "Flexible ±10%", "Negotiable"];
+const CUSTOM_BUDGET = "Custom amount…";
 
 type Props = {
   listingId: string;
@@ -23,6 +24,7 @@ export default function LeadForm({ listingId, listingTitle, listingPrice, isRent
     useState<(typeof CONTACT_METHODS)[number]>("WhatsApp");
   const [timeline, setTimeline] = useState(TIMELINES[0]);
   const [budget, setBudget] = useState(BUDGETS[0]);
+  const [customBudget, setCustomBudget] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -39,7 +41,7 @@ export default function LeadForm({ listingId, listingTitle, listingPrice, isRent
       email ? `Email: ${email}` : null,
       `Preferred contact: ${contactMethod}`,
       `Move-in: ${timeline}`,
-      `Budget flexibility: ${budget}`,
+      `Budget: ${budget === CUSTOM_BUDGET ? (customBudget ? `฿${customBudget}` : "Custom (not specified)") : budget}`,
       notes ? `Notes: ${notes}` : null,
     ].filter(Boolean).join("\n");
 
@@ -179,9 +181,27 @@ export default function LeadForm({ listingId, listingTitle, listingPrice, isRent
               className={selectClass}
             >
               {BUDGETS.map((b) => <option key={b}>{b}</option>)}
+              <option>{CUSTOM_BUDGET}</option>
             </select>
           </div>
         </div>
+
+        {/* Custom budget amount — revealed when "Custom amount…" is selected */}
+        {budget === CUSTOM_BUDGET && (
+          <div className="px-6 mt-3">
+            <div className="flex items-center bg-[#F7F5F1] rounded-xl px-4 focus-within:ring-1 focus-within:ring-[#B8935A]/50 transition-shadow">
+              <span className="font-sans text-[13px] text-[#B8935A] font-medium">฿</span>
+              <input
+                autoFocus
+                inputMode="numeric"
+                value={customBudget}
+                onChange={(e) => setCustomBudget(e.target.value.replace(/[^\d,.]/g, ""))}
+                placeholder="Your budget, e.g. 45,000 / month"
+                className="w-full font-sans text-[13px] text-[#0A0A0A] bg-transparent px-2 py-3 outline-none placeholder-[#A8A29A]"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Notes */}
         <div className="px-6 mt-5">
