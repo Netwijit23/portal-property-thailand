@@ -11,6 +11,7 @@ import HotListingsSection from "@/components/HotListingsSection";
 
 import BTSMap from "@/components/BTSMap";
 import StatsSection from "@/components/StatsSection";
+import TestimonialsSection from "@/components/TestimonialsSection";
 import FloatingContact from "@/components/FloatingContact";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
@@ -133,6 +134,9 @@ export default async function HomePage() {
 
         {/* ─── WHY US ───────────────────────────────────────────── */}
         <StatsSection />
+
+        {/* ─── CLIENT REVIEWS ───────────────────────────────────── */}
+        <TestimonialsSection />
 
         {/* ─── BTS ZONE GUIDE ───────────────────────────────────── */}
         <BTSMap />
