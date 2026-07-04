@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Grid2X2 } from "lucide-react";
 import PhotoWatermark from "@/components/PhotoWatermark";
@@ -16,12 +16,29 @@ export default function PhotoGallery({ photos, title }: { photos: string[]; titl
   const previews = photos.slice(1, 5);
   const hasMore = photos.length > 5;
 
-  function prev() {
+  const prev = useCallback(() => {
     setLightboxIndex((i) => (i === null ? 0 : (i - 1 + photos.length) % photos.length));
-  }
-  function next() {
+  }, [photos.length]);
+  const next = useCallback(() => {
     setLightboxIndex((i) => (i === null ? 0 : (i + 1) % photos.length));
-  }
+  }, [photos.length]);
+
+  // Keyboard navigation + body scroll lock while the lightbox is open
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "ArrowRight") next();
+      if (e.key === "Escape") setLightboxIndex(null);
+    }
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [lightboxIndex, prev, next]);
 
   return (
     <>
@@ -82,21 +99,28 @@ export default function PhotoGallery({ photos, title }: { photos: string[]; titl
             <X size={28} />
           </button>
 
-          {/* Counter */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 font-sans text-white/70 text-sm">
+          {/* Counter pill */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 font-sans text-white/90 text-xs tracking-[1px] px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
             {lightboxIndex + 1} / {photos.length}
           </div>
 
           {/* Prev */}
           <button
-            className="absolute left-4 text-white/70 hover:text-white z-10 p-2"
+            className="absolute left-4 z-10 w-11 h-11 rounded-full bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors"
             onClick={(e) => { e.stopPropagation(); prev(); }}
+            aria-label="Previous photo"
           >
-            <ChevronLeft size={36} />
+            <ChevronLeft size={24} />
           </button>
 
-          {/* Image */}
-          <div className="relative w-full h-full max-w-5xl max-h-[90vh] mx-auto px-16" onClick={(e) => e.stopPropagation()} onContextMenu={(e) => e.preventDefault()}>
+          {/* Image — keyed so each photo fades in */}
+          <div
+            key={lightboxIndex}
+            className="relative w-full h-full max-w-5xl max-h-[90vh] mx-auto px-16"
+            style={{ animation: "slideUp 0.35s cubic-bezier(0.16,1,0.3,1)" }}
+            onClick={(e) => e.stopPropagation()}
+            onContextMenu={(e) => e.preventDefault()}
+          >
             <PhotoWatermark size="md">
               <Image
                 src={photos[lightboxIndex]}
@@ -111,10 +135,11 @@ export default function PhotoGallery({ photos, title }: { photos: string[]; titl
 
           {/* Next */}
           <button
-            className="absolute right-4 text-white/70 hover:text-white z-10 p-2"
+            className="absolute right-4 z-10 w-11 h-11 rounded-full bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors"
             onClick={(e) => { e.stopPropagation(); next(); }}
+            aria-label="Next photo"
           >
-            <ChevronRight size={36} />
+            <ChevronRight size={24} />
           </button>
 
           {/* Thumbnail strip */}

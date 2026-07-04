@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import ListingCard from "@/components/ListingCard";
 import ListingsFilters from "@/components/ListingsFilters";
 import Reveal from "@/components/Reveal";
+import SortSelect from "@/components/SortSelect";
+import { Suspense } from "react";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
 
@@ -101,7 +103,7 @@ async function getListings(): Promise<Listing[]> {
 export default async function ListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string }>;
+  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string }>;
 }) {
   const params = await searchParams;
   const listings = await getListings();
@@ -140,12 +142,17 @@ export default async function ListingsPage({
   );
 }
 
+function effectivePrice(l: Listing): number | null {
+  // For sorting: rent listings compare by monthly rent, sale by sale price
+  return l.rent_price ?? l.sale_price ?? null;
+}
+
 function ListingsGrid({
   listings,
   initialParams,
 }: {
   listings: Listing[];
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string };
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string };
 }) {
   let filtered = listings;
   if (initialParams.type) {
@@ -170,6 +177,17 @@ function ListingsGrid({
     );
   }
 
+  if (initialParams.sort === "price-asc" || initialParams.sort === "price-desc") {
+    const dir = initialParams.sort === "price-asc" ? 1 : -1;
+    filtered = [...filtered].sort((a, b) => {
+      const pa = effectivePrice(a);
+      const pb = effectivePrice(b);
+      if (pa == null) return 1;
+      if (pb == null) return -1;
+      return (pa - pb) * dir;
+    });
+  }
+
   if (!filtered.length) {
     const noResults = listings.length > 0;
     return (
@@ -184,11 +202,22 @@ function ListingsGrid({
     );
   }
 
+  const [first, ...rest] = filtered;
+
   return (
     <div>
-      <p className="font-sans text-sm text-[#8A8680] mb-6">{filtered.length} properties</p>
+      <div className="flex items-center justify-between mb-6">
+        <p className="font-sans text-sm text-[#8A8680]">{filtered.length} properties</p>
+        <Suspense fallback={null}>
+          <SortSelect />
+        </Suspense>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {filtered.map((listing, i) => (
+        {/* Magazine layout: lead listing spans two columns */}
+        <Reveal className="md:col-span-2">
+          <ListingCard listing={first} hero />
+        </Reveal>
+        {rest.map((listing, i) => (
           <Reveal key={listing.id} delay={(i % 3) * 80}>
             <ListingCard listing={listing} />
           </Reveal>

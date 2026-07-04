@@ -11,7 +11,7 @@ function formatAvailableFrom(date: string | null): string {
   return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 }
 
-export default function ListingCard({ listing }: { listing: Listing }) {
+export default function ListingCard({ listing, hero = false }: { listing: Listing; hero?: boolean }) {
   const photo = listing.photos?.[0] || "/placeholder.jpg";
   const displayName = listing.building_name || listing.title;
 
@@ -34,7 +34,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
       <div className="bg-white border border-[#E8E4DC] rounded-xl overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] flex flex-col">
 
         {/* Photo */}
-        <div className="relative h-[260px] flex-shrink-0 overflow-hidden" onContextMenu={(e) => e.preventDefault()}>
+        <div className={`relative ${hero ? "h-[380px]" : "h-[260px]"} flex-shrink-0 overflow-hidden`} onContextMenu={(e) => e.preventDefault()}>
           <PhotoWatermark>
             <Image
               src={photo}
@@ -89,7 +89,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
 
         {/* Body */}
         <div className="px-5 pt-4 pb-0 flex flex-col gap-2">
-          <h3 className="font-cormorant text-[22px] font-medium text-[#0A0A0A] leading-snug line-clamp-1">
+          <h3 className={`font-cormorant ${hero ? "text-[28px]" : "text-[22px]"} font-medium text-[#0A0A0A] leading-snug line-clamp-1`}>
             {displayName}
           </h3>
 

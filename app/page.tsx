@@ -5,7 +5,7 @@ import { unstable_noStore as noStore } from "next/cache";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import HeroSearch from "@/components/HeroSearch";
+import CinematicHero from "@/components/CinematicHero";
 import HotListingsSection from "@/components/HotListingsSection";
 // import HeroBackground from "@/components/HeroBackground"; // slideshow option
 
@@ -126,66 +126,7 @@ export default async function HomePage() {
       <Navbar />
       <main>
         {/* ─── HERO ─────────────────────────────────────────────── */}
-        <section
-          className="relative w-full min-h-[640px] flex items-center justify-center"
-          style={{
-            height: "100vh",
-            backgroundImage: "url('https://images.unsplash.com/photo-1582535200497-8d831d74d18b?w=1920&q=90')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        >
-          {/* Deep navy top-left, transparent centre, warm gold bottom */}
-          <div className="absolute inset-0" style={{
-            background: "linear-gradient(135deg, rgba(5,10,20,0.80) 0%, rgba(5,10,20,0.40) 40%, rgba(5,10,20,0.20) 60%, rgba(12,8,2,0.65) 100%)"
-          }} />
-          {/* Subtle gold radial glow from bottom-centre */}
-          <div className="absolute inset-0 pointer-events-none" style={{
-            background: "radial-gradient(ellipse 80% 50% at 50% 110%, rgba(184,147,90,0.22) 0%, transparent 70%)"
-          }} />
-
-          {/* Bottom fade to page background */}
-          <div className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none" style={{
-            background: "linear-gradient(to bottom, transparent 0%, #FAFAF8 100%)"
-          }} />
-
-          {/* Hero content */}
-          <div className="relative z-10 w-full max-w-4xl mx-auto px-6 text-center flex flex-col items-center">
-            {/* Eyebrow */}
-            <div className="flex items-center justify-center gap-6 mb-6">
-              <div className="h-px w-8 bg-[#B8935A]" />
-              <span
-                className="font-sans uppercase text-white"
-                style={{ fontSize: 10, letterSpacing: "3px" }}
-              >
-                Bangkok Real Estate
-              </span>
-              <div className="h-px w-8 bg-[#B8935A]" />
-            </div>
-
-            {/* H1 */}
-            <h1
-              className="font-cormorant font-light text-white leading-[1.05] mb-5"
-              style={{ fontSize: "clamp(44px, 7vw, 82px)" }}
-            >
-              Bangkok&apos;s{" "}
-              <em className="italic not-italic text-[#B8935A]">Finest</em>{" "}
-              Properties
-            </h1>
-
-            {/* Subheading */}
-            <p
-              className="font-sans font-light text-white/70 max-w-[480px] text-center mb-10 leading-relaxed"
-              style={{ fontSize: 15 }}
-            >
-              Explore condos, houses and apartments across Bangkok&apos;s most
-              sought-after neighbourhoods
-            </p>
-
-            {/* Search module */}
-            <HeroSearch />
-          </div>
-        </section>
+        <CinematicHero />
 
         {/* ─── HOT LISTINGS ─────────────────────────────────────── */}
         <HotListingsSection listings={listings} badges={badges} />
