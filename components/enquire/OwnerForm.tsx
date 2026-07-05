@@ -34,8 +34,8 @@ export default function OwnerForm() {
   // Photos
   const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
 
-  // Goal
-  const [goal, setGoal] = useState<"list" | "full">("full");
+  // All owner submissions default to the full marketing service
+  const goal = "full";
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
 
@@ -187,16 +187,6 @@ export default function OwnerForm() {
           nextLabel="Submit my property"
           submitting={submitting}
         >
-          <Field label="How would you like us to help?">
-            <Segmented
-              value={goal}
-              onChange={setGoal}
-              options={[
-                { label: "Full marketing", value: "full" },
-                { label: "Just list it", value: "list" },
-              ]}
-            />
-          </Field>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Name"><TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" /></Field>
             <Field label="Phone / WhatsApp"><TextInput value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+66…" /></Field>
