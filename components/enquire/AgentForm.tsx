@@ -36,6 +36,7 @@ export default function AgentForm() {
 
   // Their client's requirement
   const [intent, setIntent] = useState<"rent" | "buy">("rent");
+  const [targetCondo, setTargetCondo] = useState("");
   const [beds, setBeds] = useState<string | null>(null);
   const [areas, setAreas] = useState<string[]>([]);
   const [budget, setBudget] = useState("");
@@ -76,6 +77,7 @@ export default function AgentForm() {
         agency ? `Agency: ${agency}` : null,
         email ? `Email: ${email}` : null,
         `── Their client is looking to ${isRent ? "RENT" : "BUY"} ──`,
+        targetCondo ? `Target condo/building: ${targetCondo}` : null,
         beds ? `Bedrooms: ${beds}` : null,
         areas.length ? `Preferred areas: ${areas.join(", ")}` : null,
         budget ? `Budget: ฿${budget}${isRent ? " / month" : ""}` : null,
@@ -145,6 +147,9 @@ export default function AgentForm() {
               onChange={setIntent}
               options={[{ label: "Rent", value: "rent" }, { label: "Buy", value: "buy" }]}
             />
+          </Field>
+          <Field label="Target condo / building" hint="optional — the specific unit you want to co-broke on">
+            <TextInput value={targetCondo} onChange={(e) => setTargetCondo(e.target.value)} placeholder="e.g. The Lofts Asoke, Ashton Silom…" />
           </Field>
           <Field label="Bedrooms">
             <ChipSingle options={BEDS} value={beds} onChange={setBeds} />
