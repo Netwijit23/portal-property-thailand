@@ -206,6 +206,9 @@ export default function OwnerForm() {
           <Field label="Anything else?" hint="optional">
             <TextArea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Availability date, furnished status, special features…" />
           </Field>
+          {error && (
+            <p className="font-sans text-[13px] text-red-500 text-center">{error}</p>
+          )}
         </StepShell>
       )}
     </>

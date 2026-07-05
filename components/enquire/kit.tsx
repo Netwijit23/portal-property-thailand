@@ -274,11 +274,11 @@ export function ShortStayNotice({
         <p className="font-sans text-[13.5px] text-[#6B6963] leading-relaxed mb-2">
           Our minimum rental contract is <strong className="text-[#0A0A0A]">1 year</strong>.
           For stays under 6 months, we recommend looking into a{" "}
-          <strong className="text-[#0A0A0A]">serviced apartment</strong> — they're designed
+          <strong className="text-[#0A0A0A]">serviced apartment</strong> — they&apos;re designed
           for short-term living with flexible contracts.
         </p>
         <p className="font-sans text-[12.5px] text-[#86868B] leading-relaxed mb-7">
-          You're welcome to continue — we'll do our best to advise.
+          You&apos;re welcome to continue — we&apos;ll do our best to advise.
         </p>
         <div className="flex flex-col gap-2.5">
           <button
