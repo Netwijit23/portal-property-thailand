@@ -238,6 +238,69 @@ export function SuccessCard({
   );
 }
 
+// ─── Short-stay notice ────────────────────────────────────────────────────────
+// Shown when the stay is under 6 months and the budget is under ฿50,000/month.
+export const SHORT_STAY_BUDGET_LIMIT = 50000;
+
+export function isShortStayCase(lengthOfStay: string, budget: string): boolean {
+  if (lengthOfStay !== "Under 6 months") return false;
+  const amount = parseFloat(budget.replace(/[^\d.]/g, ""));
+  return !isNaN(amount) && amount > 0 && amount < SHORT_STAY_BUDGET_LIMIT;
+}
+
+export function ShortStayNotice({
+  open,
+  onContinue,
+  onAdjust,
+}: {
+  open: boolean;
+  onContinue: () => void;
+  onAdjust: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onAdjust(); }}
+    >
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-[0_24px_80px_rgba(0,0,0,0.25)] px-7 py-8 text-center"
+        style={{ animation: "slideUp 0.35s cubic-bezier(0.16,1,0.3,1)" }}>
+        <div className="w-12 h-12 rounded-full bg-[#F5F2EC] flex items-center justify-center mx-auto mb-5">
+          <span className="font-cormorant text-[22px] text-[#B8935A]">i</span>
+        </div>
+        <h3 className="font-cormorant text-[26px] font-light text-[#0A0A0A] leading-tight mb-3">
+          A quick note on short stays
+        </h3>
+        <p className="font-sans text-[13.5px] text-[#6B6963] leading-relaxed mb-2">
+          Our minimum rental contract is <strong className="text-[#0A0A0A]">1 year</strong>.
+          For stays under 6 months, we recommend looking into a{" "}
+          <strong className="text-[#0A0A0A]">serviced apartment</strong> — they're designed
+          for short-term living with flexible contracts.
+        </p>
+        <p className="font-sans text-[12.5px] text-[#86868B] leading-relaxed mb-7">
+          You're welcome to continue — we'll do our best to advise.
+        </p>
+        <div className="flex flex-col gap-2.5">
+          <button
+            type="button"
+            onClick={onContinue}
+            className="w-full font-sans text-[14px] font-medium py-3.5 rounded-full bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors duration-300"
+          >
+            Continue anyway
+          </button>
+          <button
+            type="button"
+            onClick={onAdjust}
+            className="w-full font-sans text-[14px] font-medium py-3.5 rounded-full text-[#4A4840] hover:bg-[#F5F2EC] transition-colors"
+          >
+            Adjust my requirements
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Submit helper: writes to leads + fires email notification ───────────────
 import { supabase } from "@/lib/supabase";
 

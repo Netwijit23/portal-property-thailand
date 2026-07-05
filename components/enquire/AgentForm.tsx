@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipMulti, ChipSingle, StepShell, SuccessCard, submitEnquiry } from "./kit";
+import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipMulti, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry } from "./kit";
 
 const AREAS = [
   "Sukhumvit", "Silom", "Sathorn", "Thonglor", "Ekkamai", "Ari",
@@ -13,11 +13,19 @@ const BEDS = [
   { label: "3", value: "3" },
   { label: "4+", value: "4+" },
 ];
+const OCCUPANTS = [
+  { label: "1", value: "1" },
+  { label: "2", value: "2" },
+  { label: "3", value: "3" },
+  { label: "4+", value: "4+" },
+];
+const STAY_LENGTHS = ["Under 6 months", "6–12 months", "1 year", "2 years+"];
 
 export default function AgentForm() {
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [showShortStay, setShowShortStay] = useState(false);
 
   // Agent
   const [name, setName] = useState("");
@@ -31,11 +39,30 @@ export default function AgentForm() {
   const [beds, setBeds] = useState<string | null>(null);
   const [areas, setAreas] = useState<string[]>([]);
   const [budget, setBudget] = useState("");
+  const [stayLength, setStayLength] = useState("");
+
+  // Client profile
+  const [nationality, setNationality] = useState("");
+  const [occupants, setOccupants] = useState<string | null>(null);
+  const [pets, setPets] = useState<"no" | "yes">("no");
+  const [petDetails, setPetDetails] = useState("");
+  const [occupation, setOccupation] = useState("");
+
   const [split, setSplit] = useState("");
   const [notes, setNotes] = useState("");
 
+  const isRent = intent === "rent";
+
   function toggleArea(a: string) {
     setAreas((p) => (p.includes(a) ? p.filter((x) => x !== a) : [...p, a]));
+  }
+
+  function trySubmit() {
+    if (isRent && isShortStayCase(stayLength, budget)) {
+      setShowShortStay(true);
+      return;
+    }
+    submit();
   }
 
   async function submit() {
@@ -48,10 +75,16 @@ export default function AgentForm() {
         `Agent: ${name}`,
         agency ? `Agency: ${agency}` : null,
         email ? `Email: ${email}` : null,
-        `── Their client is looking to ${intent === "rent" ? "RENT" : "BUY"} ──`,
+        `── Their client is looking to ${isRent ? "RENT" : "BUY"} ──`,
         beds ? `Bedrooms: ${beds}` : null,
         areas.length ? `Preferred areas: ${areas.join(", ")}` : null,
-        budget ? `Budget: ฿${budget}${intent === "rent" ? " / month" : ""}` : null,
+        budget ? `Budget: ฿${budget}${isRent ? " / month" : ""}` : null,
+        isRent && stayLength ? `Length of stay: ${stayLength}` : null,
+        `── Client profile ──`,
+        nationality ? `Nationality: ${nationality}` : null,
+        occupants ? `Occupants: ${occupants}` : null,
+        `Pets: ${pets === "yes" ? petDetails || "Yes" : "No"}`,
+        occupation ? `Occupation: ${occupation}` : null,
         split ? `Commission split expectation: ${split}` : null,
         notes ? `Notes: ${notes}` : null,
       ],
@@ -71,9 +104,15 @@ export default function AgentForm() {
 
   return (
     <>
+      <ShortStayNotice
+        open={showShortStay}
+        onContinue={() => { setShowShortStay(false); submit(); }}
+        onAdjust={() => setShowShortStay(false)}
+      />
+
       {step === 1 && (
         <StepShell
-          step={1} total={2}
+          step={1} total={3}
           title="About you"
           subtitle="Agent-to-agent — we co-broke fairly and transparently."
           canNext={name.trim().length > 0 && phone.trim().length > 0}
@@ -92,14 +131,13 @@ export default function AgentForm() {
 
       {step === 2 && (
         <StepShell
-          step={2} total={2}
+          step={2} total={3}
           title="Your client's brief"
           subtitle="What is your client looking for?"
           canNext={true}
           onBack={() => setStep(1)}
-          onNext={submit}
-          nextLabel="Send co-broke request"
-          submitting={submitting}
+          onNext={() => setStep(3)}
+          nextLabel="Continue"
         >
           <Field label="Client is looking to">
             <Segmented
@@ -114,15 +152,57 @@ export default function AgentForm() {
           <Field label="Preferred areas" hint="select any">
             <ChipMulti options={AREAS} selected={areas} onToggle={toggleArea} />
           </Field>
-          <Field label={`Budget${intent === "rent" ? " (per month)" : ""}`} hint="optional">
+          <Field label={`Budget${isRent ? " (per month)" : ""}`} hint="optional">
             <PrefixInput
               prefix="฿"
               inputMode="numeric"
               value={budget}
               onChange={(e) => setBudget(e.target.value.replace(/[^\d,.]/g, ""))}
-              placeholder={intent === "rent" ? "e.g. 45,000" : "e.g. 8,000,000"}
+              placeholder={isRent ? "e.g. 45,000" : "e.g. 8,000,000"}
             />
           </Field>
+          {isRent && (
+            <Field label="Length of stay">
+              <ChipSingle
+                options={STAY_LENGTHS.map((s) => ({ label: s, value: s }))}
+                value={stayLength || null}
+                onChange={setStayLength}
+              />
+            </Field>
+          )}
+        </StepShell>
+      )}
+
+      {step === 3 && (
+        <StepShell
+          step={3} total={3}
+          title="Client profile"
+          subtitle="Landlords will ask — the more we know, the faster we match."
+          canNext={true}
+          onBack={() => setStep(2)}
+          onNext={trySubmit}
+          nextLabel="Send co-broke request"
+          submitting={submitting}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Nationality"><TextInput value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder="e.g. Japanese" /></Field>
+            <Field label="Occupation"><TextInput value={occupation} onChange={(e) => setOccupation(e.target.value)} placeholder="e.g. Executive" /></Field>
+          </div>
+          <Field label="How many occupants?">
+            <ChipSingle options={OCCUPANTS} value={occupants} onChange={setOccupants} />
+          </Field>
+          <Field label="Any pets?">
+            <Segmented
+              value={pets}
+              onChange={setPets}
+              options={[{ label: "No pets", value: "no" }, { label: "Yes", value: "yes" }]}
+            />
+          </Field>
+          {pets === "yes" && (
+            <Field label="Tell us about them" hint="optional">
+              <TextInput value={petDetails} onChange={(e) => setPetDetails(e.target.value)} placeholder="e.g. 1 cat" />
+            </Field>
+          )}
           <Field label="Commission split" hint="optional">
             <TextInput value={split} onChange={(e) => setSplit(e.target.value)} placeholder="e.g. 50/50" />
           </Field>
