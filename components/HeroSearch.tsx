@@ -1,7 +1,8 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ChevronDown, X } from "lucide-react";
+import { Search, ChevronDown, X, Building2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 // ── Location suggestions ─────────────────────────────────────────────────────
 // Station lists follow the real line topology (Siam is the interchange hub)
@@ -78,6 +79,25 @@ export default function HeroSearch() {
   const [showLoc, setShowLoc] = useState(false);
   const locRef = useRef<HTMLDivElement>(null);
 
+  // Condo / building names from the database, loaded once on first focus
+  const [buildings, setBuildings] = useState<string[]>([]);
+  const buildingsLoaded = useRef(false);
+
+  async function loadBuildings() {
+    if (buildingsLoaded.current) return;
+    buildingsLoaded.current = true;
+    const { data } = await supabase
+      .from("listings")
+      .select("project")
+      .eq("is_published", true)
+      .not("project", "is", null);
+    if (!data) return;
+    const unique = Array.from(new Set(
+      data.map((r) => (r.project as string).trim()).filter(Boolean)
+    )).sort((a, b) => a.localeCompare(b));
+    setBuildings(unique);
+  }
+
   // Bedrooms multi-select
   const [selectedBeds, setSelectedBeds] = useState<number[]>([]);
 
@@ -98,6 +118,11 @@ export default function HeroSearch() {
     ...g,
     items: q ? g.items.filter((i) => i.toLowerCase().includes(q)) : g.items,
   })).filter((g) => g.items.length > 0);
+
+  // Matching condo names — shown once the customer starts typing
+  const matchedBuildings = q
+    ? buildings.filter((b) => b.toLowerCase().includes(q)).slice(0, 8)
+    : [];
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -165,8 +190,8 @@ export default function HeroSearch() {
               <Search size={15} className="text-[#8A8680] shrink-0" />
               <input
                 value={location}
-                onChange={(e) => { setLocation(e.target.value); setShowLoc(true); }}
-                onFocus={() => setShowLoc(true)}
+                onChange={(e) => { setLocation(e.target.value); setShowLoc(true); loadBuildings(); }}
+                onFocus={() => { setShowLoc(true); loadBuildings(); }}
                 placeholder="Area, BTS station or condo..."
                 className="font-sans text-sm text-[#0A0A0A] placeholder-[#C0BBB4] outline-none flex-1 min-w-0 bg-transparent"
                 onKeyDown={(e) => {
@@ -185,8 +210,28 @@ export default function HeroSearch() {
             </div>
 
             {/* Location dropdown */}
-            {showLoc && filtered.length > 0 && (
+            {showLoc && (filtered.length > 0 || matchedBuildings.length > 0) && (
               <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E8E4DC] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 max-h-72 overflow-y-auto scrollbar-hide">
+                {/* Condo name matches — listed first while typing */}
+                {matchedBuildings.length > 0 && (
+                  <div>
+                    <p className="font-sans text-[10px] uppercase tracking-[1.5px] text-[#8A8680] px-4 pt-3.5 pb-1.5 sticky top-0 bg-white border-b border-[#F5F2EC]">
+                      🏢 Condos & Residences
+                    </p>
+                    <div className="py-1">
+                      {matchedBuildings.map((b) => (
+                        <button
+                          key={b}
+                          className="w-full flex items-center gap-2.5 text-left font-sans text-[13px] text-[#0A0A0A] px-4 py-2.5 hover:bg-[#F5F2EC] transition-colors"
+                          onClick={() => { setLocation(b); setShowLoc(false); }}
+                        >
+                          <Building2 size={13} className="text-[#B8935A] shrink-0" />
+                          <HighlightMatch text={b} query={q} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {filtered.map(({ label, icon, items }) => (
                   <div key={label}>
                     <p className="font-sans text-[10px] uppercase tracking-[1.5px] text-[#8A8680] px-4 pt-3.5 pb-1.5 sticky top-0 bg-white border-b border-[#F5F2EC]">
@@ -338,5 +383,18 @@ export default function HeroSearch() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Bolds the typed part of a condo name inside the suggestion row
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  const idx = text.toLowerCase().indexOf(query);
+  if (idx === -1 || !query) return <span>{text}</span>;
+  return (
+    <span>
+      {text.slice(0, idx)}
+      <strong className="font-semibold">{text.slice(idx, idx + query.length)}</strong>
+      {text.slice(idx + query.length)}
+    </span>
   );
 }
