@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { label: "Buy", href: "/listings?type=sale" },
   { label: "Rent", href: "/listings?type=rent" },
   { label: "Areas", href: "/#bts-map" },
+  { label: "Enquire", href: "/enquire" },
   { label: "About", href: "/about" },
 ];
 
@@ -70,7 +71,7 @@ export default function Navbar() {
 
           {/* CTA button */}
           <Link
-            href="/submit"
+            href="/enquire/owner"
             className={`hidden md:inline-flex font-sans text-[13px] font-medium px-5 py-2 rounded-full transition-all duration-300 z-10 ${
               transparent
                 ? "bg-white/15 text-white border border-white/30 backdrop-blur-md hover:bg-white/25"
@@ -132,7 +133,7 @@ export default function Navbar() {
         </div>
 
         <Link
-          href="/submit"
+          href="/enquire/owner"
           className="mt-14 font-sans text-sm font-medium px-8 py-3.5 rounded-full bg-[#B8935A] text-white"
           onClick={() => setOpen(false)}
         >

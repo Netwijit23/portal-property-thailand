@@ -90,7 +90,7 @@ export default function Footer() {
                 Contact
               </Link>
               <Link
-                href="/submit"
+                href="/enquire/owner"
                 className="font-sans text-[12px] text-[#4A4840] hover:text-[#B8935A] transition-colors"
               >
                 List a Property
