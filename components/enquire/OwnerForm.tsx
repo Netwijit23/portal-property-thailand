@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard, submitEnquiry } from "./kit";
+import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard } from "./kit";
+import PhotoUpload, { type UploadedPhoto } from "./PhotoUpload";
 
 const BEDS = [
   { label: "Studio", value: "Studio" },
@@ -30,34 +31,48 @@ export default function OwnerForm() {
   const [size, setSize] = useState("");
   const [price, setPrice] = useState("");
 
+  // Photos
+  const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
+
   // Goal
   const [goal, setGoal] = useState<"list" | "full">("full");
   const [notes, setNotes] = useState("");
+  const [error, setError] = useState("");
 
   async function submit() {
     setSubmitting(true);
-    await submitEnquiry({
-      kind: "OWNER — LIST A PROPERTY",
-      name, phone, line, email,
-      summaryTitle: `Owner listing — ${project || zone || name}`,
-      notesLines: [
-        `Owner: ${name}`,
-        email ? `Email: ${email}` : null,
-        `── Property ──`,
-        `Listing type: ${listType === "both" ? "Rent & Sale" : listType === "rent" ? "Rent" : "Sale"}`,
-        project ? `Building / project: ${project}` : null,
-        zone ? `Zone / BTS: ${zone}` : null,
-        `Property type: ${propType}`,
-        beds ? `Bedrooms: ${beds}` : null,
-        size ? `Size: ${size} sqm` : null,
-        price ? `Asking price: ฿${price}${listType === "rent" ? " / month" : ""}` : null,
-        `── Goal ──`,
-        goal === "full" ? "Wants full marketing service" : "Wants to list the unit",
-        notes ? `Notes: ${notes}` : null,
-      ],
-    });
-    setSubmitting(false);
-    setDone(true);
+    setError("");
+    try {
+      const res = await fetch("/api/owner-listing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, phone, email, line,
+          listType, project, zone, propType,
+          beds, size, price, goal, notes,
+          photos: photos.map((p) => p.url),
+        }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Something went wrong");
+      }
+      // Notify the team by email too (best-effort)
+      fetch("/api/send-lead-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          listing_title: `Owner listing — ${project || zone || name}`,
+          client_name: name, client_phone: phone, client_email: email || "", client_line: line || "",
+          notes: `Owner submitted a property with ${photos.length} photo(s). A draft listing was created for review.`,
+        }),
+      }).catch(() => {});
+      setDone(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (done) {
@@ -73,7 +88,7 @@ export default function OwnerForm() {
     <>
       {step === 1 && (
         <StepShell
-          step={1} total={3}
+          step={1} total={4}
           title="Your property"
           subtitle="A few details about the unit you'd like us to market."
           canNext={true}
@@ -113,7 +128,7 @@ export default function OwnerForm() {
 
       {step === 2 && (
         <StepShell
-          step={2} total={3}
+          step={2} total={4}
           title="Size & price"
           subtitle="Give us a rough idea — we'll advise on the best market price."
           canNext={true}
@@ -147,11 +162,27 @@ export default function OwnerForm() {
 
       {step === 3 && (
         <StepShell
-          step={3} total={3}
-          title="How can we reach you?"
-          subtitle="We'll be in touch to arrange photos and go live."
-          canNext={name.trim().length > 0 && phone.trim().length > 0}
+          step={3} total={4}
+          title="Add your photos"
+          subtitle="Upload photos of your unit — the more you add, the faster we can list it. You can skip and send them later."
+          canNext={true}
           onBack={() => setStep(2)}
+          onNext={() => setStep(4)}
+          nextLabel="Continue"
+        >
+          <Field label="Property photos" hint="optional — up to 12">
+            <PhotoUpload photos={photos} onChange={setPhotos} />
+          </Field>
+        </StepShell>
+      )}
+
+      {step === 4 && (
+        <StepShell
+          step={4} total={4}
+          title="How can we reach you?"
+          subtitle="We'll review your unit and be in touch to confirm details and go live."
+          canNext={name.trim().length > 0 && phone.trim().length > 0}
+          onBack={() => setStep(3)}
           onNext={submit}
           nextLabel="Submit my property"
           submitting={submitting}
