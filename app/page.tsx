@@ -6,6 +6,7 @@ import { unstable_noStore as noStore } from "next/cache";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CinematicHero from "@/components/CinematicHero";
+import StickySearch from "@/components/StickySearch";
 import HotListingsSection from "@/components/HotListingsSection";
 // import HeroBackground from "@/components/HeroBackground"; // slideshow option
 
@@ -125,6 +126,7 @@ export default async function HomePage() {
   return (
     <>
       <Navbar />
+      <StickySearch />
       <main>
         {/* ─── HERO ─────────────────────────────────────────────── */}
         <CinematicHero />

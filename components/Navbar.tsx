@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Heart } from "lucide-react";
+import { useSaved } from "@/lib/favourites";
 
 const NAV_LINKS = [
   { label: "Buy", href: "/listings?type=sale" },
@@ -16,6 +17,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { count } = useSaved();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 60);
@@ -69,26 +71,56 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* CTA button */}
-          <Link
-            href="/enquire/owner"
-            className={`hidden md:inline-flex font-sans text-[13px] font-medium px-5 py-2 rounded-full transition-all duration-300 z-10 ${
-              transparent
-                ? "bg-white/15 text-white border border-white/30 backdrop-blur-md hover:bg-white/25"
-                : "bg-[#B8935A] text-white hover:bg-[#a07d4a]"
-            }`}
-          >
-            List a Property
-          </Link>
+          {/* Right cluster: saved + CTA */}
+          <div className="hidden md:flex items-center gap-3 z-10">
+            <Link
+              href="/saved"
+              aria-label="Saved properties"
+              className={`press relative w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                transparent ? "text-white hover:bg-white/15" : "text-[#0A0A0A] hover:bg-black/5"
+              }`}
+            >
+              <Heart size={18} strokeWidth={1.8} fill={count > 0 ? "#B8935A" : "none"} stroke={count > 0 ? "#B8935A" : "currentColor"} />
+              {count > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-[#B8935A] text-white text-[9px] font-semibold flex items-center justify-center">
+                  {count}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/enquire/owner"
+              className={`press inline-flex font-sans text-[13px] font-medium px-5 py-2 rounded-full transition-all duration-300 ${
+                transparent
+                  ? "bg-white/15 text-white border border-white/30 backdrop-blur-md hover:bg-white/25"
+                  : "bg-[#B8935A] text-white hover:bg-[#a07d4a]"
+              }`}
+            >
+              List a Property
+            </Link>
+          </div>
 
-          {/* Hamburger */}
-          <button
-            className={`md:hidden z-10 transition-colors duration-300 ${transparent ? "text-white" : "text-[#0A0A0A]"}`}
-            onClick={() => setOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu size={22} />
-          </button>
+          {/* Mobile: saved + hamburger */}
+          <div className="md:hidden flex items-center gap-1 z-10">
+            <Link
+              href="/saved"
+              aria-label="Saved properties"
+              className={`relative w-9 h-9 rounded-full flex items-center justify-center ${transparent ? "text-white" : "text-[#0A0A0A]"}`}
+            >
+              <Heart size={20} strokeWidth={1.8} fill={count > 0 ? "#B8935A" : "none"} stroke={count > 0 ? "#B8935A" : "currentColor"} />
+              {count > 0 && (
+                <span className="absolute top-0 right-0 min-w-[15px] h-[15px] px-0.5 rounded-full bg-[#B8935A] text-white text-[8px] font-semibold flex items-center justify-center">
+                  {count}
+                </span>
+              )}
+            </Link>
+            <button
+              className={`transition-colors duration-300 ${transparent ? "text-white" : "text-[#0A0A0A]"}`}
+              onClick={() => setOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={22} />
+            </button>
+          </div>
         </div>
       </nav>
 

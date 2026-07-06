@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X, Grid2X2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Grid2X2, Expand } from "lucide-react";
 import PhotoWatermark from "@/components/PhotoWatermark";
 
 const noSave = {
@@ -12,9 +12,24 @@ const noSave = {
 
 export default function PhotoGallery({ photos, title }: { photos: string[]; title: string }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [cursor, setCursor] = useState({ x: 0, y: 0, show: false });
   const main = photos[0];
   const previews = photos.slice(1, 5);
   const hasMore = photos.length > 5;
+
+  function onGalleryMouseMove(e: React.MouseEvent) {
+    setCursor({ x: e.clientX, y: e.clientY, show: true });
+  }
+
+  // Subtle parallax "recede": gallery gently scales + fades as content scrolls over it
+  const [scrollY, setScrollY] = useState(0);
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  const p = Math.min(scrollY, 400) / 400;
+  const galleryStyle = { transform: `scale(${1 - p * 0.04})`, opacity: 1 - p * 0.25 };
 
   const prev = useCallback(() => {
     setLightboxIndex((i) => (i === null ? 0 : (i - 1 + photos.length) % photos.length));
@@ -48,7 +63,17 @@ export default function PhotoGallery({ photos, title }: { photos: string[]; titl
       </div>
 
       {/* ── Desktop: gallery grid ── */}
-      <div className="hidden md:block relative bg-[#0A0A0A]">
+      <div className="hidden md:block relative bg-[#0A0A0A] gallery-cursor" style={galleryStyle} onMouseMove={onGalleryMouseMove} onMouseLeave={() => setCursor((c) => ({ ...c, show: false }))}>
+        {/* Custom "View" cursor */}
+        <div
+          className="pointer-events-none fixed z-[60] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-150"
+          style={{ left: cursor.x, top: cursor.y, opacity: cursor.show ? 1 : 0 }}
+        >
+          <div className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-white text-[11px] font-sans font-medium tracking-wide" style={{ background: "rgba(10,10,10,0.7)", backdropFilter: "blur(6px)" }}>
+            <Expand size={12} /> View
+          </div>
+        </div>
+
         {photos.length === 1 ? (
           <div className="relative h-[60vh] cursor-pointer" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()}>
             <PhotoWatermark size="md">

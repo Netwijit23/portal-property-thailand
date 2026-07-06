@@ -1,8 +1,20 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Search, ChevronDown, X, Building2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+
+type LiveListing = {
+  id: number | string;
+  project: string | null;
+  zone: string | null;
+  bts_mrt: string | null;
+  photos: string[] | null;
+  rent_price_1m: number | null;
+  sale_price: number | null;
+  listing_type: string | null;
+};
 
 // ── Location suggestions ─────────────────────────────────────────────────────
 // Station lists follow the real line topology (Siam is the interchange hub)
@@ -79,8 +91,9 @@ export default function HeroSearch() {
   const [showLoc, setShowLoc] = useState(false);
   const locRef = useRef<HTMLDivElement>(null);
 
-  // Condo / building names from the database, loaded once on first focus
+  // Condo / building names + live listings, loaded once on first focus
   const [buildings, setBuildings] = useState<string[]>([]);
+  const [allListings, setAllListings] = useState<LiveListing[]>([]);
   const buildingsLoaded = useRef(false);
 
   async function loadBuildings() {
@@ -88,12 +101,15 @@ export default function HeroSearch() {
     buildingsLoaded.current = true;
     const { data } = await supabase
       .from("listings")
-      .select("project")
+      .select("id, project, zone, bts_mrt, photos, rent_price_1m, sale_price, listing_type")
       .eq("is_published", true)
-      .not("project", "is", null);
+      .in("status", ["available", "reserved", "rented"])
+      .order("created_at", { ascending: false });
     if (!data) return;
+    const rows = data as LiveListing[];
+    setAllListings(rows);
     const unique = Array.from(new Set(
-      data.map((r) => (r.project as string).trim()).filter(Boolean)
+      rows.map((r) => (r.project ?? "").trim()).filter(Boolean)
     )).sort((a, b) => a.localeCompare(b));
     setBuildings(unique);
   }
@@ -121,8 +137,26 @@ export default function HeroSearch() {
 
   // Matching condo names — shown once the customer starts typing
   const matchedBuildings = q
-    ? buildings.filter((b) => b.toLowerCase().includes(q)).slice(0, 8)
+    ? buildings.filter((b) => b.toLowerCase().includes(q)).slice(0, 6)
     : [];
+
+  // Matching live listings (thumbnail + price) — instant results
+  const matchedListings = q
+    ? allListings
+        .filter((l) =>
+          (l.project ?? "").toLowerCase().includes(q) ||
+          (l.zone ?? "").toLowerCase().includes(q) ||
+          (l.bts_mrt ?? "").toLowerCase().includes(q)
+        )
+        .slice(0, 4)
+    : [];
+
+  function listingPrice(l: LiveListing): string {
+    if (l.listing_type === "sale") return l.sale_price ? `฿${l.sale_price.toLocaleString()}` : "Price on request";
+    if (l.rent_price_1m) return `฿${l.rent_price_1m.toLocaleString()}/mo`;
+    if (l.sale_price) return `฿${l.sale_price.toLocaleString()}`;
+    return "Price on request";
+  }
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -210,8 +244,36 @@ export default function HeroSearch() {
             </div>
 
             {/* Location dropdown */}
-            {showLoc && (filtered.length > 0 || matchedBuildings.length > 0) && (
-              <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E8E4DC] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 max-h-72 overflow-y-auto scrollbar-hide">
+            {showLoc && (filtered.length > 0 || matchedBuildings.length > 0 || matchedListings.length > 0) && (
+              <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E8E4DC] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 max-h-[380px] overflow-y-auto scrollbar-hide">
+                {/* Instant listing results with thumbnails */}
+                {matchedListings.length > 0 && (
+                  <div>
+                    <p className="font-sans text-[10px] uppercase tracking-[1.5px] text-[#8A8680] px-4 pt-3.5 pb-1.5 sticky top-0 bg-white border-b border-[#F5F2EC]">
+                      Matching Properties
+                    </p>
+                    <div className="py-1">
+                      {matchedListings.map((l) => (
+                        <a
+                          key={`live-${l.id}`}
+                          href={`/listings/${l.id}`}
+                          className="flex items-center gap-3 px-3 py-2 hover:bg-[#F5F2EC] transition-colors"
+                        >
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F0ECE4] shrink-0">
+                            {l.photos?.[0] && (
+                              <Image src={l.photos[0]} alt="" fill className="object-cover" sizes="48px" draggable={false} />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-sans text-[13px] font-medium text-[#0A0A0A] truncate">{l.project || l.zone || "Property"}</p>
+                            <p className="font-sans text-[11px] text-[#8A8680] truncate">{[l.zone, l.bts_mrt].filter(Boolean).join(" · ")}</p>
+                          </div>
+                          <span className="font-sans text-[12px] font-medium text-[#B8935A] shrink-0">{listingPrice(l)}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {/* Condo name matches — listed first while typing */}
                 {matchedBuildings.length > 0 && (
                   <div>

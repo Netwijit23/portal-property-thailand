@@ -69,3 +69,50 @@
 .animate-kenburns {
   animation: kenburns 24s ease-in-out infinite alternate;
 }
+
+/* Shimmer for skeleton loaders */
+@keyframes shimmer {
+  0% { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #F0ECE4 0%, #F7F4EE 40%, #F0ECE4 80%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* Page enter transition (used by app/template.tsx) */
+@keyframes pageFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: pageFade 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Warm editorial colour-grade applied to listing photos */
+.photo-grade::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255,247,235,0.06) 0%, transparent 30%, rgba(40,25,10,0.10) 100%);
+  mix-blend-mode: multiply;
+  z-index: 2;
+}
+
+/* Hide native cursor over the desktop gallery (custom View pill shown instead) */
+@media (hover: hover) and (pointer: fine) {
+  .gallery-cursor, .gallery-cursor * {
+    cursor: none;
+  }
+}
+
+/* Micro-haptic press for interactive elements */
+.press {
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+.press:active {
+  transform: scale(0.97);
+}

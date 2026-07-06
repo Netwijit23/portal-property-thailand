@@ -223,7 +223,7 @@ export default function LeadForm({ listingId, listingTitle, listingPrice, isRent
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 font-sans text-[14px] font-medium py-3.5 rounded-full bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors duration-300 disabled:opacity-60"
+            className="press w-full flex items-center justify-center gap-2 font-sans text-[14px] font-medium py-3.5 rounded-full bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors duration-300 disabled:opacity-60"
           >
             {loading
               ? <><Loader2 size={15} className="animate-spin" /> Sending…</>

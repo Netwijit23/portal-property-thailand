@@ -1,18 +1,22 @@
 import Reveal from "./Reveal";
+import CountUp from "./CountUp";
 
-const STATS = [
+const STATS: {
+  count: number; prefix?: string; suffix?: string; static?: string;
+  title: string; caption: string;
+}[] = [
   {
-    figure: "500+",
+    count: 500, suffix: "+",
     title: "Curated Properties",
     caption: "Hand-picked condos, houses and villas across Bangkok's finest addresses",
   },
   {
-    figure: "2 min",
+    count: 2, suffix: " min",
     title: "BTS-Connected Living",
     caption: "Every listing mapped to its nearest station, from Ari to On Nut",
   },
   {
-    figure: "20+",
+    count: 20, suffix: "+",
     title: "Nationalities Served",
     caption: "Trusted by expats and international investors relocating to Thailand",
   },
@@ -44,9 +48,12 @@ export default function StatsSection() {
                 i > 0 ? "border-t md:border-t-0 md:border-l border-[#B8935A]/20" : ""
               }`}
             >
-              <p className="font-cormorant text-[56px] md:text-[64px] font-light text-[#E5C795] leading-none mb-4">
-                {stat.figure}
-              </p>
+              <CountUp
+                end={stat.count}
+                prefix={stat.prefix}
+                suffix={stat.suffix}
+                className="block font-cormorant text-[56px] md:text-[64px] font-light text-[#E5C795] leading-none mb-4"
+              />
               <p className="font-sans text-[11px] uppercase tracking-[2px] text-white mb-3">
                 {stat.title}
               </p>

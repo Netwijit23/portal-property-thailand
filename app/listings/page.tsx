@@ -8,6 +8,8 @@ import ListingCard from "@/components/ListingCard";
 import ListingsFilters from "@/components/ListingsFilters";
 import Reveal from "@/components/Reveal";
 import SortSelect from "@/components/SortSelect";
+import ListingsMap from "@/components/ListingsMap";
+import { Grid2x2, Map } from "lucide-react";
 import { Suspense } from "react";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
@@ -103,7 +105,7 @@ async function getListings(): Promise<Listing[]> {
 export default async function ListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string }>;
+  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string }>;
 }) {
   const params = await searchParams;
   const listings = await getListings();
@@ -152,8 +154,9 @@ function ListingsGrid({
   initialParams,
 }: {
   listings: Listing[];
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string };
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string };
 }) {
+  const isMap = initialParams.view === "map";
   let filtered = listings;
   if (initialParams.type) {
     filtered = filtered.filter((l) =>
@@ -206,12 +209,21 @@ function ListingsGrid({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-3">
         <p className="font-sans text-sm text-[#8A8680]">{filtered.length} properties</p>
-        <Suspense fallback={null}>
-          <SortSelect />
-        </Suspense>
+        <div className="flex items-center gap-3">
+          <ViewToggle current={initialParams} isMap={isMap} />
+          {!isMap && (
+            <Suspense fallback={null}>
+              <SortSelect />
+            </Suspense>
+          )}
+        </div>
       </div>
+
+      {isMap ? (
+        <ListingsMap listings={filtered} />
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {/* Magazine layout: lead listing spans two columns */}
         <Reveal className="md:col-span-2">
@@ -223,6 +235,46 @@ function ListingsGrid({
           </Reveal>
         ))}
       </div>
+      )}
+    </div>
+  );
+}
+
+function ViewToggle({
+  current,
+  isMap,
+}: {
+  current: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string };
+  isMap: boolean;
+}) {
+  const base = new URLSearchParams();
+  if (current.type) base.set("type", current.type);
+  if (current.zone) base.set("zone", current.zone);
+  if (current.propType) base.set("propType", current.propType);
+  if (current.bedrooms) base.set("bedrooms", current.bedrooms);
+  if (current.sort) base.set("sort", current.sort);
+  const gridQS = base.toString();
+  const mapParams = new URLSearchParams(base);
+  mapParams.set("view", "map");
+
+  return (
+    <div className="flex rounded-full border border-[#E8E4DC] overflow-hidden bg-white">
+      <a
+        href={`/listings${gridQS ? `?${gridQS}` : ""}`}
+        className={`flex items-center gap-1.5 font-sans text-[12px] font-medium px-3.5 py-2 transition-colors ${
+          !isMap ? "bg-[#0A0A0A] text-white" : "text-[#8A8680] hover:text-[#0A0A0A]"
+        }`}
+      >
+        <Grid2x2 size={13} /> Grid
+      </a>
+      <a
+        href={`/listings?${mapParams.toString()}`}
+        className={`flex items-center gap-1.5 font-sans text-[12px] font-medium px-3.5 py-2 transition-colors ${
+          isMap ? "bg-[#0A0A0A] text-white" : "text-[#8A8680] hover:text-[#0A0A0A]"
+        }`}
+      >
+        <Map size={13} /> Map
+      </a>
     </div>
   );
 }

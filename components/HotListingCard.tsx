@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Bed, Bath, Maximize2 } from "lucide-react";
+import { Bed, Bath, Maximize2 } from "lucide-react";
 import type { Listing } from "@/lib/supabase";
 import PhotoWatermark from "@/components/PhotoWatermark";
+import SaveButton from "@/components/SaveButton";
 
 export type HotBadge = "Hot" | "New" | "Reduced";
 
@@ -37,7 +37,6 @@ function formatAvailableFrom(date: string | null): string {
 
 export default function HotListingCard(props: Props) {
   const listing = props.listing;
-  const [saved, setSaved] = useState(false);
   const photo = listing.photos?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80";
   const { primary, secondary } = formatHotPrice(listing);
   const isBoth = listing.listing_type === "both";
@@ -50,7 +49,7 @@ export default function HotListingCard(props: Props) {
     >
       {/* Full-bleed photo with overlay */}
       <div
-        className="relative h-[400px] rounded-2xl overflow-hidden"
+        className="relative photo-grade h-[400px] rounded-2xl overflow-hidden"
         onContextMenu={(e) => e.preventDefault()}
       >
         <PhotoWatermark>
@@ -90,13 +89,18 @@ export default function HotListingCard(props: Props) {
         </div>
 
         {/* Top-right: save heart */}
-        <button
-          className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center transition-colors hover:bg-white/30"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSaved((s) => !s); }}
-          aria-label={saved ? "Remove from saved" : "Save listing"}
-        >
-          <Heart size={15} fill={saved ? "#B8935A" : "none"} stroke={saved ? "#B8935A" : "#FFFFFF"} />
-        </button>
+        <div className="absolute top-4 right-4">
+          <SaveButton
+            listing={{
+              id: listing.id,
+              title: listing.building_name || listing.title,
+              photo: listing.photos?.[0] ?? null,
+              price: primary,
+              bts_station: listing.bts_station,
+              type: listing.listing_type,
+            }}
+          />
+        </div>
 
         {/* Bottom overlay: name, price, specs */}
         <div className="absolute inset-x-0 bottom-0 p-5">

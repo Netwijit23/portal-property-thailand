@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Bed, Bath, Maximize2 } from "lucide-react";
 import type { Listing } from "@/lib/supabase";
 import PhotoWatermark from "@/components/PhotoWatermark";
+import SaveButton from "@/components/SaveButton";
 
 function formatAvailableFrom(date: string | null): string {
   if (!date) return "Available soon";
@@ -34,7 +35,7 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
       <div className="bg-white border border-[#E8E4DC] rounded-xl overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] flex flex-col">
 
         {/* Photo */}
-        <div className={`relative ${hero ? "h-[380px]" : "h-[260px]"} flex-shrink-0 overflow-hidden`} onContextMenu={(e) => e.preventDefault()}>
+        <div className={`relative photo-grade ${hero ? "h-[380px]" : "h-[260px]"} flex-shrink-0 overflow-hidden`} onContextMenu={(e) => e.preventDefault()}>
           <PhotoWatermark>
             <Image
               src={photo}
@@ -74,6 +75,20 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
                 </span>
               </>
             )}
+          </div>
+
+          {/* Top-right: save heart */}
+          <div className="absolute top-3 right-3 z-10">
+            <SaveButton
+              listing={{
+                id: listing.id,
+                title: displayName,
+                photo: listing.photos?.[0] ?? null,
+                price: displayPrice,
+                bts_station: listing.bts_station,
+                type: listing.listing_type,
+              }}
+            />
           </div>
 
           {/* Bottom-right: BTS badge */}

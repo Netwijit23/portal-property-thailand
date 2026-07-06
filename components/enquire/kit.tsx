@@ -199,7 +199,7 @@ export function StepShell({
             <button
               type="button"
               onClick={onBack}
-              className="font-sans text-[14px] font-medium px-6 py-3.5 rounded-full text-[#4A4840] hover:bg-[#F5F2EC] transition-colors"
+              className="press font-sans text-[14px] font-medium px-6 py-3.5 rounded-full text-[#4A4840] hover:bg-[#F5F2EC] transition-colors"
             >
               Back
             </button>
@@ -208,7 +208,7 @@ export function StepShell({
             type="button"
             onClick={onNext}
             disabled={!canNext || submitting}
-            className="flex-1 font-sans text-[14px] font-medium py-3.5 rounded-full bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors duration-300 disabled:opacity-40 disabled:hover:bg-[#0A0A0A]"
+            className="press flex-1 font-sans text-[14px] font-medium py-3.5 rounded-full bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors duration-300 disabled:opacity-40 disabled:hover:bg-[#0A0A0A]"
           >
             {submitting ? "Sending…" : nextLabel}
           </button>

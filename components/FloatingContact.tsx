@@ -1,34 +1,35 @@
 "use client";
 import { useState } from "react";
-import { X, MessageCircle } from "lucide-react";
+import { X, MessageCircle, Phone } from "lucide-react";
 
 const WHATSAPP_URL =
   "https://wa.me/66650595097?text=Hi%20Portal%20Property%2C%20I%27d%20like%20to%20enquire%20about%20a%20property";
 const LINE_URL = "https://line.me/R/ti/p/@portalproperty";
+const PHONE = "+66650595097";
 
 export default function FloatingContact() {
   const [open, setOpen] = useState(false);
 
   return (
     <div className="fixed right-5 bottom-6 z-40 flex flex-col items-end gap-3">
-      {/* Expanded panel */}
+      {/* Expanded panel — frosted glass */}
       {open && (
         <div
-          className="bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.15)] border border-[#E8E4DC] p-5 w-[220px]"
-          style={{ animation: "slideUp 0.18s ease-out" }}
+          className="rounded-3xl shadow-[0_16px_60px_rgba(0,0,0,0.22)] border border-white/50 p-5 w-[248px]"
+          style={{ animation: "slideUp 0.2s cubic-bezier(0.16,1,0.3,1)", background: "rgba(255,255,255,0.82)", backdropFilter: "blur(20px) saturate(1.4)", WebkitBackdropFilter: "blur(20px) saturate(1.4)" }}
         >
-          <div className="flex items-center justify-between mb-4">
-            <p className="font-cormorant text-[17px] text-[#0A0A0A]">Contact Us</p>
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="font-cormorant text-[19px] text-[#0A0A0A]">Talk to us</p>
             <button
               onClick={() => setOpen(false)}
-              className="text-[#8A8680] hover:text-[#0A0A0A] transition-colors"
+              className="press text-[#8A8680] hover:text-[#0A0A0A] transition-colors"
             >
               <X size={16} />
             </button>
           </div>
 
           <p className="font-sans text-[11px] text-[#8A8680] mb-4 leading-relaxed">
-            Our team replies within 2 hours during business hours.
+            We reply within 2 hours during business hours.
           </p>
 
           <div className="flex flex-col gap-2.5">
@@ -57,9 +58,17 @@ export default function FloatingContact() {
               </svg>
               LINE: @portalproperty
             </a>
+
+            <a
+              href={`tel:${PHONE}`}
+              className="press flex items-center gap-2.5 font-sans text-[13px] font-medium px-4 py-2.5 rounded-xl bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors"
+            >
+              <Phone size={16} />
+              Call us
+            </a>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#F0EDE8] text-center">
+          <div className="mt-4 pt-3 border-t border-black/5 text-center">
             <p className="font-sans text-[10px] text-[#8A8680]">Mon–Sat · 9 am – 7 pm</p>
           </div>
         </div>
@@ -68,7 +77,7 @@ export default function FloatingContact() {
       {/* Toggle button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all duration-200 ${
+        className={`press w-14 h-14 rounded-full flex items-center justify-center shadow-[0_6px_24px_rgba(184,147,90,0.4)] transition-all duration-200 ${
           open
             ? "bg-[#0A0A0A] text-white rotate-0"
             : "bg-[#B8935A] text-white hover:bg-[#a07d4a]"
