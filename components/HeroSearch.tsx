@@ -245,7 +245,7 @@ export default function HeroSearch() {
 
             {/* Location dropdown */}
             {showLoc && (filtered.length > 0 || matchedBuildings.length > 0 || matchedListings.length > 0) && (
-              <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E8E4DC] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 max-h-[380px] overflow-y-auto scrollbar-hide">
+              <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E8E4DC] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 max-h-[380px] overflow-y-auto overscroll-contain scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
                 {/* Instant listing results with thumbnails */}
                 {matchedListings.length > 0 && (
                   <div>

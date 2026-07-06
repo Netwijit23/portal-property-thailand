@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
 
   await transporter.sendMail({
     from: `"Portal Property Thailand" <${user}>`,
-    to: "Anawin.portal@gmail.com",
+    to: "Portalproperty.th@gmail.com",
     subject: `New Lead: ${client_name} — ${listing_title || "Property Enquiry"}`,
     html,
   });

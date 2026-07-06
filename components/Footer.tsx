@@ -95,8 +95,8 @@ export default function Footer() {
                 <a href="tel:+66650595097" className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680] hover:text-[#B8935A] transition-colors">
                   <Phone size={12} /> +66 65 059 5097
                 </a>
-                <a href="mailto:hello@portalproperty.com" className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680] hover:text-[#B8935A] transition-colors">
-                  <Mail size={12} /> hello@portalproperty.com
+                <a href="mailto:Portalproperty.th@gmail.com" className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680] hover:text-[#B8935A] transition-colors">
+                  <Mail size={12} /> Portalproperty.th@gmail.com
                 </a>
                 <p className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680]">
                   <MapPin size={12} /> Bangkok, Thailand
