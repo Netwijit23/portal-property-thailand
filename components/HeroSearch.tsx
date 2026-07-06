@@ -90,6 +90,43 @@ export default function HeroSearch() {
   const [location, setLocation] = useState("");
   const [showLoc, setShowLoc] = useState(false);
   const locRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Bulletproof scroll containment for the suggestions dropdown — works even on
+  // older browsers without CSS `overscroll-behavior`.
+  useEffect(() => {
+    const el = dropdownRef.current;
+    if (!el || !showLoc) return;
+
+    const onWheel = (e: WheelEvent) => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const up = e.deltaY < 0;
+      const atTop = scrollTop <= 0;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+      if ((up && atTop) || (!up && atBottom)) e.preventDefault();
+    };
+
+    let lastY = 0;
+    const onTouchStart = (e: TouchEvent) => { lastY = e.touches[0].clientY; };
+    const onTouchMove = (e: TouchEvent) => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const y = e.touches[0].clientY;
+      const up = y > lastY; // finger moving down = content up
+      lastY = y;
+      const atTop = scrollTop <= 0;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
+      if ((up && atTop) || (!up && atBottom)) e.preventDefault();
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+    };
+  }, [showLoc]);
 
   // Condo / building names + live listings, loaded once on first focus
   const [buildings, setBuildings] = useState<string[]>([]);
@@ -245,7 +282,7 @@ export default function HeroSearch() {
 
             {/* Location dropdown */}
             {showLoc && (filtered.length > 0 || matchedBuildings.length > 0 || matchedListings.length > 0) && (
-              <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E8E4DC] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 max-h-[380px] overflow-y-auto overscroll-contain scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+              <div ref={dropdownRef} className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E8E4DC] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-50 max-h-[380px] overflow-y-auto overscroll-contain scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
                 {/* Instant listing results with thumbnails */}
                 {matchedListings.length > 0 && (
                   <div>
