@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       </div>` : ""}
 
       <p style="margin-top:24px;font-size:12px;color:#8A8680">
-        Sent automatically by <strong>Portal Property Thailand</strong> · portalpropertyth.com
+        Sent automatically by <strong>Portal Property Thailand</strong> · portalpropertythailand.com
       </p>
     </div>
   `;
