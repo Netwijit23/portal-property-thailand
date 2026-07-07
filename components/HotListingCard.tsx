@@ -5,6 +5,7 @@ import { Bed, Bath, Maximize2 } from "lucide-react";
 import type { Listing } from "@/lib/supabase";
 import PhotoWatermark from "@/components/PhotoWatermark";
 import SaveButton from "@/components/SaveButton";
+import FreshnessBadge from "@/components/FreshnessBadge";
 
 export type HotBadge = "Hot" | "New" | "Reduced";
 
@@ -82,9 +83,12 @@ export default function HotListingCard(props: Props) {
               </span>
             </>
           ) : (
-            <span className="font-sans text-[10px] font-medium tracking-[1.5px] uppercase px-3 py-1 rounded-full bg-white/15 text-white backdrop-blur-md border border-white/20 w-fit">
-              {isBoth ? "Rent · Sale" : isRent ? "For Rent" : "For Sale"}
-            </span>
+            <>
+              <span className="font-sans text-[10px] font-medium tracking-[1.5px] uppercase px-3 py-1 rounded-full bg-white/15 text-white backdrop-blur-md border border-white/20 w-fit">
+                {isBoth ? "Rent · Sale" : isRent ? "For Rent" : "For Sale"}
+              </span>
+              <FreshnessBadge listing={listing} variant="glass" />
+            </>
           )}
         </div>
 

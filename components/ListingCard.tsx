@@ -6,16 +6,7 @@ import type { Listing } from "@/lib/supabase";
 import PhotoWatermark from "@/components/PhotoWatermark";
 import SaveButton from "@/components/SaveButton";
 import { useLang } from "@/lib/i18n";
-
-// Days since the admin last confirmed availability via the admin app's
-// "Check Now" panel (availability_checked_at — stamped on every save, unlike
-// updated_at which any edit touches); null when stale (>14 days) or never
-// confirmed — badge hidden entirely in that case.
-export function freshnessDays(listing: Listing): number | null {
-  if (listing.status !== "available" || !listing.availability_checked_at) return null;
-  const days = Math.floor((Date.now() - new Date(listing.availability_checked_at).getTime()) / 86_400_000);
-  return days >= 0 && days <= 14 ? days : null;
-}
+import FreshnessBadge from "@/components/FreshnessBadge";
 
 export default function ListingCard({ listing, hero = false }: { listing: Listing; hero?: boolean }) {
   const { lang, t } = useLang();
@@ -36,7 +27,6 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
     : null;
 
   const displayPrice = primaryPrice || t("priceOnRequest");
-  const freshDays = freshnessDays(listing);
 
   function formatAvailableFrom(date: string | null): string {
     if (!date) return t("availableSoon");
@@ -87,12 +77,7 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
                 }`}>
                   {isBoth ? t("forBoth") : isSale ? t("forSale") : t("forRent")}
                 </span>
-                {freshDays !== null && (
-                  <span className="flex items-center gap-1.5 font-sans text-[9px] font-medium px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[#1A3A2A] w-fit">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#2E9E5B] flex-shrink-0" />
-                    {freshDays === 0 ? t("confirmedToday") : t("confirmedDaysAgo", { n: freshDays })}
-                  </span>
-                )}
+                <FreshnessBadge listing={listing} variant="card" />
               </>
             )}
           </div>

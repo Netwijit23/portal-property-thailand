@@ -16,6 +16,7 @@ import type { Metadata } from "next";
 import AdminEditButton from "@/components/AdminEditButton";
 import StickyEnquireBar from "@/components/StickyEnquireBar";
 import ChatButtons from "@/components/ChatButtons";
+import FreshnessBadge from "@/components/FreshnessBadge";
 import { T, BiText } from "@/lib/i18n";
 
 // Mock data preserved for local development — not used in production
@@ -292,6 +293,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                      listing.listing_type === "both" ? <T k="forRentAndSale" /> : <T k="forSale" />}
                   </span>
                   <span className="font-sans text-xs text-[#8A8680] capitalize">{listing.type}</span>
+                  <FreshnessBadge listing={listing} variant="detail" />
                   {listing.status === "rented" && (
                     <span className="font-sans text-xs font-semibold px-3 py-1 rounded-full bg-[#7B2020] text-white">
                       Rented
