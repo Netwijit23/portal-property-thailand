@@ -93,21 +93,41 @@ export default function HeroSearch() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownMaxH, setDropdownMaxH] = useState(420);
 
-  // Size the dropdown to exactly the space between the input and the viewport
-  // bottom, so every entry is reachable by scrolling inside it. Recompute on
-  // open + resize.
+  // When the dropdown opens, make sure there's actually room to show it: if the
+  // search bar sits low on screen (as it does in the hero), scroll it up first
+  // so the dropdown has space below instead of hanging off-screen unreachable.
   useEffect(() => {
     if (!showLoc) return;
+    const el = locRef.current;
+    if (!el) return;
+
+    const MIN_SPACE = 260; // minimum comfortable dropdown height
+    const NAV_OFFSET = 80; // don't tuck the input under the sticky navbar
+
+    const rect = el.getBoundingClientRect();
+    const availNow = window.innerHeight - rect.bottom - 20;
+    if (availNow < MIN_SPACE) {
+      const target = window.scrollY + rect.top - NAV_OFFSET;
+      window.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
+    }
+
     const recalc = () => {
-      const el = locRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const avail = window.innerHeight - rect.bottom - 20;
-      setDropdownMaxH(Math.max(220, Math.min(avail, 460)));
+      const r = el.getBoundingClientRect();
+      const avail = window.innerHeight - r.bottom - 20;
+      setDropdownMaxH(Math.max(160, Math.min(avail, 460)));
     };
     recalc();
+    // Recalculate a few times while the smooth-scroll settles, then on resize.
+    const t1 = setTimeout(recalc, 120);
+    const t2 = setTimeout(recalc, 320);
+    const t3 = setTimeout(recalc, 550);
     window.addEventListener("resize", recalc);
-    return () => window.removeEventListener("resize", recalc);
+    window.addEventListener("scroll", recalc, { passive: true });
+    return () => {
+      clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+      window.removeEventListener("resize", recalc);
+      window.removeEventListener("scroll", recalc);
+    };
   }, [showLoc]);
 
   // Desktop trackpad/wheel: keep scroll inside the dropdown (touch uses native
