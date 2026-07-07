@@ -56,13 +56,14 @@ export default function CinematicHero() {
         background: "linear-gradient(to bottom, transparent 0%, #FAFAF8 100%)"
       }} />
 
-      {/* Hero content — fades slightly as you scroll away */}
+      {/* Hero content — same layout as before; only the heading text fades on
+          scroll now, the search module stays fully legible */}
       <div
         className="relative z-10 w-full max-w-4xl mx-auto px-6 text-center flex flex-col items-center"
-        style={{ opacity: Math.max(0, 1 - offset / 500), transform: `translateY(${offset * 0.12}px)` }}
+        style={{ transform: `translateY(${offset * 0.12}px)` }}
       >
         {/* Eyebrow */}
-        <div className="flex items-center justify-center gap-6 mb-6" style={entrance(100)}>
+        <div className="flex items-center justify-center gap-6 mb-6" style={{ ...entrance(100), opacity: Math.min(entrance(100).opacity, Math.max(0, 1 - offset / 500)) }}>
           <div className="h-px w-8 bg-[#B8935A]" />
           <span className="font-sans uppercase text-white" style={{ fontSize: 10, letterSpacing: "3px" }}>
             Bangkok Real Estate
@@ -73,7 +74,7 @@ export default function CinematicHero() {
         {/* H1 */}
         <h1
           className="font-cormorant font-light text-white leading-[1.05] mb-5"
-          style={{ fontSize: "clamp(44px, 7vw, 82px)", ...entrance(250) }}
+          style={{ fontSize: "clamp(44px, 7vw, 82px)", ...entrance(250), opacity: Math.min(entrance(250).opacity, Math.max(0, 1 - offset / 500)) }}
         >
           Bangkok&apos;s <em className="italic text-[#E5C795]">Finest</em> Properties
         </h1>
@@ -81,13 +82,13 @@ export default function CinematicHero() {
         {/* Subheading */}
         <p
           className="font-sans font-light text-white/70 max-w-[480px] text-center mb-10 leading-relaxed"
-          style={{ fontSize: 15, ...entrance(400) }}
+          style={{ fontSize: 15, ...entrance(400), opacity: Math.min(entrance(400).opacity, Math.max(0, 1 - offset / 500)) }}
         >
           Explore condos, houses and apartments across Bangkok&apos;s most
           sought-after neighbourhoods
         </p>
 
-        {/* Search module */}
+        {/* Search module — kept fully opaque and legible regardless of scroll */}
         <div className="w-full" style={entrance(550)}>
           <HeroSearch />
         </div>
