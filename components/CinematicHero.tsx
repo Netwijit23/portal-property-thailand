@@ -56,7 +56,7 @@ export default function CinematicHero() {
         background: "linear-gradient(to bottom, transparent 0%, #FAFAF8 100%)"
       }} />
 
-      {/* Hero content — fades slightly as you scroll away */}
+      {/* Hero text — fades slightly as you scroll away */}
       <div
         className="relative z-10 w-full max-w-4xl mx-auto px-6 text-center flex flex-col items-center"
         style={{ opacity: Math.max(0, 1 - offset / 500), transform: `translateY(${offset * 0.12}px)` }}
@@ -86,11 +86,15 @@ export default function CinematicHero() {
           Explore condos, houses and apartments across Bangkok&apos;s most
           sought-after neighbourhoods
         </p>
+      </div>
 
-        {/* Search module */}
-        <div className="w-full" style={entrance(550)}>
-          <HeroSearch />
-        </div>
+      {/* Search module — kept fully opaque and legible regardless of scroll,
+          since its dropdown needs to stay readable while the user is browsing it */}
+      <div
+        className="relative z-20 w-full max-w-4xl mx-auto px-6 -mt-10"
+        style={entrance(550)}
+      >
+        <HeroSearch />
       </div>
 
       {/* Scroll cue */}
