@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap');
-
+/* Fonts are self-hosted via next/font in app/layout.tsx and exposed as
+   --font-cormorant / --font-dm-sans CSS variables */
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -21,7 +21,7 @@
   body {
     background-color: #FAFAF8;
     color: #0A0A0A;
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-dm-sans), sans-serif;
   }
   /* Block long-press save / drag on all photos site-wide */
   img {
@@ -33,10 +33,10 @@
 
 @layer utilities {
   .font-cormorant {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: var(--font-cormorant), serif;
   }
   .font-dm-sans {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-dm-sans), sans-serif;
   }
   .scrollbar-hide {
     -ms-overflow-style: none;

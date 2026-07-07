@@ -11,7 +11,8 @@ import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
 import { Bed, Bath, Maximize2, MapPin, Building2 } from "lucide-react";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, cache } from "react";
+import type { Metadata } from "next";
 import AdminEditButton from "@/components/AdminEditButton";
 import StickyEnquireBar from "@/components/StickyEnquireBar";
 
@@ -83,7 +84,8 @@ import StickyEnquireBar from "@/components/StickyEnquireBar";
   },
 ]; */
 
-async function getListing(id: string): Promise<Listing | null> {
+// cache() dedupes the fetch between generateMetadata and the page render
+const getListing = cache(async (id: string): Promise<Listing | null> => {
   const { data, error } = await supabase
     .from("listings")
     .select("*")
@@ -92,7 +94,7 @@ async function getListing(id: string): Promise<Listing | null> {
     .single();
   if (error || !data) return null;
   return dbToListing(data as DBListing);
-}
+});
 
 async function getSimilar(listing: Listing): Promise<Listing[]> {
   const similarTypes = listing.listing_type === "both"
@@ -166,6 +168,46 @@ function formatPrice(listing: Listing) {
   return "Price on request";
 }
 
+// Runs before the response starts streaming, so a missing listing returns a
+// real 404 status (the in-render notFound() below fires after the 200 shell
+// has already been sent).
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const listing = await getListing(id);
+  if (!listing) notFound();
+
+  const displayTitle = listing.type === "condo" && listing.building_name
+    ? listing.building_name
+    : listing.title;
+  const price = formatPrice(listing);
+  const title = `${displayTitle} — ${price}`;
+  const bedrooms = listing.bedrooms ? `${listing.bedrooms}-bedroom` : "Studio";
+  const description = (
+    listing.description ||
+    `${bedrooms} ${listing.type} for ${listing.listing_type === "both" ? "rent or sale" : listing.listing_type}${listing.zone ? ` in ${listing.zone}` : " in Bangkok"}${listing.bts_station ? `, near BTS ${listing.bts_station}` : ""}. ${listing.size_sqm} sqm. ${price}.`
+  ).slice(0, 300);
+  const image = listing.photos?.[0];
+
+  return {
+    title: `${title} | Portal Property Thailand`,
+    description,
+    alternates: { canonical: `/listings/${listing.id}` },
+    openGraph: {
+      title,
+      description,
+      url: `/listings/${listing.id}`,
+      siteName: "Portal Property Thailand",
+      type: "website",
+      ...(image ? { images: [{ url: image }] } : {}),
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title,
+      description,
+    },
+  };
+}
+
 export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const listing = await getListing(id);
@@ -191,8 +233,32 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const listingUrl = `${siteUrl}/listings/${listing.id}`;
 
+  // Structured data for search engines
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    name: displayTitle,
+    url: listingUrl,
+    ...(photos.length ? { image: photos } : {}),
+    ...(description ? { description } : {}),
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "THB",
+      ...(listing.rent_price || listing.sale_price
+        ? { price: listing.rent_price ?? listing.sale_price }
+        : {}),
+      availability: listing.status === "available"
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+    },
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Navbar />
       <Suspense fallback={null}>
         <AdminEditButton listingId={listing.id} />

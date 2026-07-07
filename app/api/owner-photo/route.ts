@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { rateLimit, clientIp } from "@/lib/api";
 
 const BUCKET = "listing-photos";
+const ALLOWED_EXT = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif", "avif"]);
 
 // Public endpoint: owners upload photos for a property they're submitting.
 // Uses the service role key so no anon storage policy is needed. One file
@@ -10,6 +12,11 @@ export async function POST(req: NextRequest) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) {
     return NextResponse.json({ error: "Upload not configured" }, { status: 500 });
+  }
+
+  // One photo per request; 40 per 10 minutes per IP covers a full submission
+  if (!rateLimit(`photo:${clientIp(req)}`, 40, 10 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many uploads" }, { status: 429 });
   }
 
   const formData = await req.formData();
@@ -25,7 +32,8 @@ export async function POST(req: NextRequest) {
 
   const service = createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey);
 
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const rawExt = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const ext = ALLOWED_EXT.has(rawExt) ? rawExt : "jpg";
   const path = `owner-submissions/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const arrayBuffer = await file.arrayBuffer();

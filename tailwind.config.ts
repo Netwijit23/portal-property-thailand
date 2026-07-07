@@ -18,8 +18,8 @@ const config: Config = {
         surface: "#F5F2EC",
       },
       fontFamily: {
-        cormorant: ["'Cormorant Garamond'", "serif"],
-        sans: ["'DM Sans'", "sans-serif"],
+        cormorant: ["var(--font-cormorant)", "serif"],
+        sans: ["var(--font-dm-sans)", "sans-serif"],
       },
       borderRadius: {
         "2xl": "1rem",
