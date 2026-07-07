@@ -30,31 +30,35 @@ export default function CinematicHero() {
   });
 
   return (
-    <section className="relative w-full min-h-[640px] flex items-center justify-center overflow-hidden" style={{ height: "100vh" }}>
-      {/* Ken Burns background with scroll parallax */}
-      <div
-        className="absolute inset-[-10%] animate-kenburns"
-        style={{
-          backgroundImage: `url('${HERO_IMG}')`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          transform: `translateY(${offset * 0.25}px)`,
-          willChange: "transform",
-        }}
-      />
+    <section className="relative w-full min-h-[640px] flex items-center justify-center" style={{ height: "100vh" }}>
+      {/* Background + overlays live in their own clipping layer so the search
+          autocomplete dropdown can overflow the hero without being cut off */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Ken Burns background with scroll parallax */}
+        <div
+          className="absolute inset-[-10%] animate-kenburns"
+          style={{
+            backgroundImage: `url('${HERO_IMG}')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            transform: `translateY(${offset * 0.25}px)`,
+            willChange: "transform",
+          }}
+        />
 
-      {/* Deep navy top-left, transparent centre, warm gold bottom */}
-      <div className="absolute inset-0" style={{
-        background: "linear-gradient(135deg, rgba(5,10,20,0.80) 0%, rgba(5,10,20,0.40) 40%, rgba(5,10,20,0.20) 60%, rgba(12,8,2,0.65) 100%)"
-      }} />
-      {/* Subtle gold radial glow from bottom-centre */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: "radial-gradient(ellipse 80% 50% at 50% 110%, rgba(184,147,90,0.22) 0%, transparent 70%)"
-      }} />
-      {/* Bottom fade to page background */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none" style={{
-        background: "linear-gradient(to bottom, transparent 0%, #FAFAF8 100%)"
-      }} />
+        {/* Deep navy top-left, transparent centre, warm gold bottom */}
+        <div className="absolute inset-0" style={{
+          background: "linear-gradient(135deg, rgba(5,10,20,0.80) 0%, rgba(5,10,20,0.40) 40%, rgba(5,10,20,0.20) 60%, rgba(12,8,2,0.65) 100%)"
+        }} />
+        {/* Subtle gold radial glow from bottom-centre */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: "radial-gradient(ellipse 80% 50% at 50% 110%, rgba(184,147,90,0.22) 0%, transparent 70%)"
+        }} />
+        {/* Bottom fade to page background */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 pointer-events-none" style={{
+          background: "linear-gradient(to bottom, transparent 0%, #FAFAF8 100%)"
+        }} />
+      </div>
 
       {/* Hero content — same layout as before; only the heading text fades on
           scroll now, the search module stays fully legible */}

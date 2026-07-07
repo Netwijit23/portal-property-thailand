@@ -130,21 +130,9 @@ export default function HeroSearch() {
     };
   }, [showLoc]);
 
-  // Desktop trackpad/wheel: keep scroll inside the dropdown (touch uses native
-  // momentum scrolling + CSS overscroll-contain, which we must not block).
-  useEffect(() => {
-    const el = dropdownRef.current;
-    if (!el || !showLoc) return;
-    const onWheel = (e: WheelEvent) => {
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const up = e.deltaY < 0;
-      const atTop = scrollTop <= 0;
-      const atBottom = scrollTop + clientHeight >= scrollHeight - 1;
-      if ((up && atTop) || (!up && atBottom)) e.preventDefault();
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [showLoc]);
+  // Scroll containment inside the dropdown is handled purely by CSS
+  // (overscroll-behavior: contain below) — no JS wheel interception, which
+  // proved unreliable across trackpads/devices.
 
   // Condo / building names + live listings, loaded once on first focus
   const [buildings, setBuildings] = useState<string[]>([]);
