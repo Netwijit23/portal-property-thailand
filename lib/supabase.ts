@@ -52,6 +52,7 @@ export type DBListing = {
   posted_at: string | null
   created_at: string
   updated_at: string | null
+  availability_checked_at: string | null
   featured?: boolean
 }
 
@@ -82,6 +83,7 @@ export type Listing = {
   available_from?: string | null
   created_at: string
   updated_at?: string | null
+  availability_checked_at?: string | null
   featured?: boolean
 }
 
@@ -118,6 +120,7 @@ export function dbToListing(r: DBListing): Listing {
     available_from: r.available_from || null,
     created_at: r.created_at,
     updated_at: r.updated_at || null,
+    availability_checked_at: r.availability_checked_at || null,
     featured: r.featured || false,
   }
 }

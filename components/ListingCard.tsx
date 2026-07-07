@@ -7,11 +7,13 @@ import PhotoWatermark from "@/components/PhotoWatermark";
 import SaveButton from "@/components/SaveButton";
 import { useLang } from "@/lib/i18n";
 
-// Days since the admin last confirmed the listing (updated_at); null when
-// stale (>14 days) or never confirmed — badge hidden entirely in that case.
+// Days since the admin last confirmed availability via the admin app's
+// "Check Now" panel (availability_checked_at — stamped on every save, unlike
+// updated_at which any edit touches); null when stale (>14 days) or never
+// confirmed — badge hidden entirely in that case.
 export function freshnessDays(listing: Listing): number | null {
-  if (listing.status !== "available" || !listing.updated_at) return null;
-  const days = Math.floor((Date.now() - new Date(listing.updated_at).getTime()) / 86_400_000);
+  if (listing.status !== "available" || !listing.availability_checked_at) return null;
+  const days = Math.floor((Date.now() - new Date(listing.availability_checked_at).getTime()) / 86_400_000);
   return days >= 0 && days <= 14 ? days : null;
 }
 
