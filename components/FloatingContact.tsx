@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { X, MessageCircle, Phone } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 const WHATSAPP_URL =
   "https://wa.me/66650595097?text=Hi%20Portal%20Property%2C%20I%27d%20like%20to%20enquire%20about%20a%20property";
@@ -9,6 +10,7 @@ const PHONE = "+66650595097";
 
 export default function FloatingContact() {
   const [open, setOpen] = useState(false);
+  const { t } = useLang();
 
   return (
     <div className="fixed right-5 bottom-6 z-40 flex flex-col items-end gap-3">
@@ -19,7 +21,7 @@ export default function FloatingContact() {
           style={{ animation: "slideUp 0.2s cubic-bezier(0.16,1,0.3,1)", background: "rgba(255,255,255,0.82)", backdropFilter: "blur(20px) saturate(1.4)", WebkitBackdropFilter: "blur(20px) saturate(1.4)" }}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <p className="font-cormorant text-[19px] text-[#0A0A0A]">Talk to us</p>
+            <p className="font-cormorant text-[19px] text-[#0A0A0A]">{t("talkToUs")}</p>
             <button
               onClick={() => setOpen(false)}
               className="press text-[#8A8680] hover:text-[#0A0A0A] transition-colors"
@@ -29,7 +31,7 @@ export default function FloatingContact() {
           </div>
 
           <p className="font-sans text-[11px] text-[#8A8680] mb-4 leading-relaxed">
-            We reply within 2 hours during business hours.
+            {t("replyTime")}
           </p>
 
           <div className="flex flex-col gap-2.5">
@@ -64,12 +66,12 @@ export default function FloatingContact() {
               className="press flex items-center gap-2.5 font-sans text-[13px] font-medium px-4 py-2.5 rounded-xl bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors"
             >
               <Phone size={16} />
-              Call us
+              {t("callUs")}
             </a>
           </div>
 
           <div className="mt-4 pt-3 border-t border-black/5 text-center">
-            <p className="font-sans text-[10px] text-[#8A8680]">Mon–Sat · 9 am – 7 pm</p>
+            <p className="font-sans text-[10px] text-[#8A8680]">{t("openingHours")}</p>
           </div>
         </div>
       )}

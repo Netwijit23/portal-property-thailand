@@ -5,16 +5,21 @@ import { Bed, Bath, Maximize2 } from "lucide-react";
 import type { Listing } from "@/lib/supabase";
 import PhotoWatermark from "@/components/PhotoWatermark";
 import SaveButton from "@/components/SaveButton";
+import { useLang } from "@/lib/i18n";
 
-function formatAvailableFrom(date: string | null): string {
-  if (!date) return "Available soon";
-  const d = new Date(date);
-  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+// Days since the admin last confirmed the listing (updated_at); null when
+// stale (>14 days) or never confirmed — badge hidden entirely in that case.
+export function freshnessDays(listing: Listing): number | null {
+  if (listing.status !== "available" || !listing.updated_at) return null;
+  const days = Math.floor((Date.now() - new Date(listing.updated_at).getTime()) / 86_400_000);
+  return days >= 0 && days <= 14 ? days : null;
 }
 
 export default function ListingCard({ listing, hero = false }: { listing: Listing; hero?: boolean }) {
+  const { lang, t } = useLang();
   const photo = listing.photos?.[0] || "/placeholder.jpg";
   const displayName = listing.building_name || listing.title;
+  const displayZone = lang === "th" && listing.zone_th ? listing.zone_th : listing.zone;
 
   const isBoth = listing.listing_type === "both";
   const isRent = listing.listing_type === "rent";
@@ -22,13 +27,20 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
 
   const primaryPrice = isBoth || isSale
     ? listing.sale_price ? `฿${listing.sale_price.toLocaleString()}` : null
-    : listing.rent_price ? `฿${listing.rent_price.toLocaleString()}/mo` : null;
+    : listing.rent_price ? `฿${listing.rent_price.toLocaleString()}${t("perMonth")}` : null;
 
   const secondaryPrice = isBoth && listing.rent_price
-    ? `or ฿${listing.rent_price.toLocaleString()}/mo`
+    ? `${t("or")} ฿${listing.rent_price.toLocaleString()}${t("perMonth")}`
     : null;
 
-  const displayPrice = primaryPrice || "Price on request";
+  const displayPrice = primaryPrice || t("priceOnRequest");
+  const freshDays = freshnessDays(listing);
+
+  function formatAvailableFrom(date: string | null): string {
+    if (!date) return t("availableSoon");
+    const d = new Date(date);
+    return d.toLocaleDateString(lang === "th" ? "th-TH" : "en-GB", { month: "long", year: "numeric" });
+  }
 
   return (
     <Link href={`/listings/${listing.id}`} className="group block">
@@ -53,17 +65,17 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
             {listing.status === "rented" ? (
               <>
                 <span className="font-sans text-[10px] font-semibold px-2.5 py-1 bg-[#7B2020] text-white w-fit">
-                  Rented
+                  {t("rented")}
                 </span>
                 <span className="font-sans text-[9px] font-medium px-2.5 py-0.5 bg-black/60 text-white/90 backdrop-blur-sm w-fit">
-                  Available {formatAvailableFrom(listing.available_from ?? null)}
+                  {t("available")} {formatAvailableFrom(listing.available_from ?? null)}
                 </span>
               </>
             ) : (
               <>
                 {listing.featured && (
                   <span className="font-sans text-[10px] font-semibold px-2.5 py-1 bg-[#B8935A] text-white w-fit">
-                    Featured
+                    {t("featured")}
                   </span>
                 )}
                 <span className={`font-sans text-[10px] font-semibold px-2.5 py-1 w-fit ${
@@ -71,8 +83,14 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
                   : isRent ? "bg-[#1A3A2A] text-white"
                   : "bg-[#0A0A0A] text-white"
                 }`}>
-                  {isBoth ? "For Sale · For Rent" : isSale ? "For Sale" : "For Rent"}
+                  {isBoth ? t("forBoth") : isSale ? t("forSale") : t("forRent")}
                 </span>
+                {freshDays !== null && (
+                  <span className="flex items-center gap-1.5 font-sans text-[9px] font-medium px-2.5 py-1 bg-white/90 backdrop-blur-sm text-[#1A3A2A] w-fit">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#2E9E5B] flex-shrink-0" />
+                    {freshDays === 0 ? t("confirmedToday") : t("confirmedDaysAgo", { n: freshDays })}
+                  </span>
+                )}
               </>
             )}
           </div>
@@ -119,26 +137,26 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
 
           <div className="flex items-center gap-3 text-[#8A8680]">
             <span className="flex items-center gap-1 font-sans text-xs">
-              <Bed size={12} /> {listing.bedrooms === 0 ? "Studio" : `${listing.bedrooms}`}
+              <Bed size={12} /> {listing.bedrooms === 0 ? t("studio") : `${listing.bedrooms}`}
             </span>
             <span className="flex items-center gap-1 font-sans text-xs">
               <Bath size={12} /> {listing.bathrooms}
             </span>
             <span className="flex items-center gap-1 font-sans text-xs">
-              <Maximize2 size={12} /> {listing.size_sqm} sqm
+              <Maximize2 size={12} /> {listing.size_sqm} {t("sqm")}
             </span>
           </div>
         </div>
 
         {/* Footer */}
         <div className="px-5 py-3 mt-auto border-t border-[#E8E4DC] flex justify-between items-center">
-          {listing.zone && (
+          {displayZone && (
             <span className="font-sans text-[10px] tracking-wide text-[#8A8680] truncate mr-3">
-              {listing.zone}
+              {displayZone}
             </span>
           )}
           <span className="font-sans text-[10px] tracking-[2px] uppercase text-[#B8935A] shrink-0 transition-all group-hover:tracking-[3px]">
-            View Property
+            {t("viewProperty")}
           </span>
         </div>
 

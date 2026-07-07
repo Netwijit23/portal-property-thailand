@@ -4,13 +4,15 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X, Heart } from "lucide-react";
 import { useSaved } from "@/lib/favourites";
+import { useLang, type StringKey } from "@/lib/i18n";
+import LangToggle from "@/components/LangToggle";
 
-const NAV_LINKS = [
-  { label: "Buy", href: "/listings?type=sale" },
-  { label: "Rent", href: "/listings?type=rent" },
-  { label: "Areas", href: "/#bts-map" },
-  { label: "Enquire", href: "/enquire" },
-  { label: "About", href: "/about" },
+const NAV_LINKS: { key: StringKey; href: string }[] = [
+  { key: "navBuy", href: "/listings?type=sale" },
+  { key: "navRent", href: "/listings?type=rent" },
+  { key: "navAreas", href: "/#bts-map" },
+  { key: "navEnquire", href: "/enquire" },
+  { key: "navAbout", href: "/about" },
 ];
 
 export default function Navbar() {
@@ -18,6 +20,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { count } = useSaved();
+  const { t } = useLang();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 60);
@@ -56,9 +59,9 @@ export default function Navbar() {
 
           {/* Center nav links */}
           <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
-            {NAV_LINKS.map(({ label, href }) => (
+            {NAV_LINKS.map(({ key, href }) => (
               <Link
-                key={label}
+                key={key}
                 href={href}
                 className={`font-sans text-[11px] uppercase tracking-[1.5px] transition-colors duration-300 ${
                   transparent
@@ -66,13 +69,14 @@ export default function Navbar() {
                     : "text-[#8A8680] hover:text-[#0A0A0A]"
                 }`}
               >
-                {label}
+                {t(key)}
               </Link>
             ))}
           </div>
 
-          {/* Right cluster: saved + CTA */}
-          <div className="hidden md:flex items-center gap-3 z-10">
+          {/* Right cluster: language + saved + CTA */}
+          <div className="hidden md:flex items-center gap-4 z-10">
+            <LangToggle light={transparent} />
             <Link
               href="/saved"
               aria-label="Saved properties"
@@ -95,7 +99,7 @@ export default function Navbar() {
                   : "bg-[#B8935A] text-white hover:bg-[#a07d4a]"
               }`}
             >
-              List a Property
+              {t("listProperty")}
             </Link>
           </div>
 
@@ -152,14 +156,14 @@ export default function Navbar() {
         </Link>
 
         <div className="flex flex-col items-center gap-9">
-          {NAV_LINKS.map(({ label, href }) => (
+          {NAV_LINKS.map(({ key, href }) => (
             <Link
-              key={label}
+              key={key}
               href={href}
               className="font-cormorant text-[32px] font-light text-[#0A0A0A] hover:text-[#B8935A] transition-colors"
               onClick={() => setOpen(false)}
             >
-              {label}
+              {t(key)}
             </Link>
           ))}
         </div>
@@ -169,8 +173,12 @@ export default function Navbar() {
           className="mt-14 font-sans text-sm font-medium px-8 py-3.5 rounded-full bg-[#B8935A] text-white"
           onClick={() => setOpen(false)}
         >
-          List a Property
+          {t("listProperty")}
         </Link>
+
+        <div className="mt-10">
+          <LangToggle />
+        </div>
       </div>
     </>
   );

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 // Mobile-only bottom bar that appears after scrolling past the hero and
 // hides once the lead form sidebar is on screen.
@@ -12,6 +13,7 @@ export default function StickyEnquireBar({
   price: string;
 }) {
   const [visible, setVisible] = useState(false);
+  const { t } = useLang();
 
   useEffect(() => {
     const form = document.getElementById("lead-form");
@@ -55,7 +57,7 @@ export default function StickyEnquireBar({
         className="shrink-0 flex items-center gap-2 font-sans text-[13px] font-medium px-6 py-3 rounded-full bg-[#B8935A] text-white hover:bg-[#a07d4a] transition-colors"
       >
         <MessageCircle size={15} />
-        Enquire
+        {t("enquireCta")}
       </button>
     </div>
   );

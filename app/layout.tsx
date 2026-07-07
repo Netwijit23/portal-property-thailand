@@ -3,6 +3,7 @@ import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 import FloatingContact from "@/components/FloatingContact";
+import { LanguageProvider } from "@/lib/i18n";
 
 // Self-hosted via next/font — no render-blocking Google Fonts request
 const cormorant = Cormorant_Garamond({
@@ -41,8 +42,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
       <body className="antialiased">
-        {children}
-        <FloatingContact />
+        <LanguageProvider>
+          {children}
+          <FloatingContact />
+        </LanguageProvider>
         <Analytics />
       </body>
     </html>

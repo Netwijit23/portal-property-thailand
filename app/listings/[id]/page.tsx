@@ -15,6 +15,8 @@ import { Suspense, cache } from "react";
 import type { Metadata } from "next";
 import AdminEditButton from "@/components/AdminEditButton";
 import StickyEnquireBar from "@/components/StickyEnquireBar";
+import ChatButtons from "@/components/ChatButtons";
+import { T, BiText } from "@/lib/i18n";
 
 // Mock data preserved for local development — not used in production
 /* const MOCK_LISTINGS: Listing[] = [
@@ -286,8 +288,8 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     listing.listing_type === "rent" ? "bg-[#1A3A2A] text-white" :
                     listing.listing_type === "both" ? "bg-[#1A3A2A] text-white" : "bg-[#0A0A0A] text-white"
                   }`}>
-                    {listing.listing_type === "rent" ? "For Rent" :
-                     listing.listing_type === "both" ? "For Rent & Sale" : "For Sale"}
+                    {listing.listing_type === "rent" ? <T k="forRent" /> :
+                     listing.listing_type === "both" ? <T k="forRentAndSale" /> : <T k="forSale" />}
                   </span>
                   <span className="font-sans text-xs text-[#8A8680] capitalize">{listing.type}</span>
                   {listing.status === "rented" && (
@@ -343,7 +345,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                     <div className="flex items-baseline gap-2">
                       <span className="font-sans text-[11px] uppercase tracking-wider text-[#8A8680] w-10">Rent</span>
                       <span className="font-sans text-2xl font-medium text-[#B8935A]">
-                        ฿{listing.rent_price.toLocaleString()} <span className="text-base font-normal">/ month</span>
+                        ฿{listing.rent_price.toLocaleString()} <span className="text-base font-normal"><T k="perMonthLong" /></span>
                       </span>
                     </div>
                   )}
@@ -364,25 +366,27 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
               {/* Key stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                {[
-                  { icon: <Bed size={20} />, label: "Bedrooms", value: listing.bedrooms || "Studio" },
-                  { icon: <Bath size={20} />, label: "Bathrooms", value: listing.bathrooms },
-                  { icon: <Maximize2 size={20} />, label: "Size", value: `${listing.size_sqm} sqm` },
-                  { icon: <Building2 size={20} />, label: "Floor", value: listing.floor || "—" },
-                ].map((stat) => (
-                  <div key={stat.label} className="bg-[#F5F2EC] rounded-2xl p-4 text-center">
+                {([
+                  { key: "bedrooms", icon: <Bed size={20} />, value: listing.bedrooms || <T k="studio" /> },
+                  { key: "bathrooms", icon: <Bath size={20} />, value: listing.bathrooms },
+                  { key: "size", icon: <Maximize2 size={20} />, value: <>{listing.size_sqm} <T k="sqm" /></> },
+                  { key: "floor", icon: <Building2 size={20} />, value: listing.floor || "—" },
+                ] as const).map((stat) => (
+                  <div key={stat.key} className="bg-[#F5F2EC] rounded-2xl p-4 text-center">
                     <div className="flex justify-center text-[#B8935A] mb-2">{stat.icon}</div>
                     <div className="font-cormorant text-xl text-[#0A0A0A]">{stat.value}</div>
-                    <div className="font-sans text-xs text-[#8A8680]">{stat.label}</div>
+                    <div className="font-sans text-xs text-[#8A8680]"><T k={stat.key} /></div>
                   </div>
                 ))}
               </div>
 
-              {/* Description */}
+              {/* Description — Thai users see the original Thai copy when it exists */}
               {description && (
                 <div className="mb-10">
-                  <h2 className="font-cormorant text-2xl text-[#0A0A0A] mb-4">About this property</h2>
-                  <p className="font-sans text-[#8A8680] leading-relaxed">{description}</p>
+                  <h2 className="font-cormorant text-2xl text-[#0A0A0A] mb-4"><T k="aboutProperty" /></h2>
+                  <p className="font-sans text-[#8A8680] leading-relaxed">
+                    <BiText en={description} th={listing.description_th} />
+                  </p>
                 </div>
               )}
 
@@ -395,6 +399,9 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
             {/* Lead form sidebar */}
             <aside id="lead-form" className="lg:w-80 shrink-0">
+              <div className="mb-3">
+                <ChatButtons title={displayTitle} price={price} url={listingUrl} />
+              </div>
               <LeadForm
                 listingId={listing.id}
                 listingTitle={displayTitle}
@@ -407,7 +414,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           {/* Similar listings */}
           {similar.length > 0 && (
             <div className="mt-16 pt-12 border-t border-[#E8E4DC]">
-              <h2 className="font-cormorant font-light text-3xl text-[#0A0A0A] mb-8">Similar properties</h2>
+              <h2 className="font-cormorant font-light text-3xl text-[#0A0A0A] mb-8"><T k="similarProperties" /></h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {similar.map((l) => (
                   <ListingCard key={l.id} listing={l} />

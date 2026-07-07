@@ -51,6 +51,7 @@ export type DBListing = {
   original_url: string | null
   posted_at: string | null
   created_at: string
+  updated_at: string | null
   featured?: boolean
 }
 
@@ -80,6 +81,7 @@ export type Listing = {
   status: 'available' | 'rented' | 'sold'
   available_from?: string | null
   created_at: string
+  updated_at?: string | null
   featured?: boolean
 }
 
@@ -115,6 +117,7 @@ export function dbToListing(r: DBListing): Listing {
     status: r.status === 'rented' ? 'rented' : r.status === 'sold' ? 'sold' : 'available',
     available_from: r.available_from || null,
     created_at: r.created_at,
+    updated_at: r.updated_at || null,
     featured: r.featured || false,
   }
 }

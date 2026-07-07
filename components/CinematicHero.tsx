@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import HeroSearch from "./HeroSearch";
+import { useLang } from "@/lib/i18n";
 
 const HERO_IMG = "https://images.unsplash.com/photo-1582535200497-8d831d74d18b?w=1920&q=90";
 
@@ -8,6 +9,7 @@ export default function CinematicHero() {
   const [offset, setOffset] = useState(0);
   const [mounted, setMounted] = useState(false);
   const raf = useRef(0);
+  const { t } = useLang();
 
   useEffect(() => {
     setMounted(true);
@@ -70,7 +72,7 @@ export default function CinematicHero() {
         <div className="flex items-center justify-center gap-6 mb-6" style={{ ...entrance(100), opacity: Math.min(entrance(100).opacity, Math.max(0, 1 - offset / 500)) }}>
           <div className="h-px w-8 bg-[#B8935A]" />
           <span className="font-sans uppercase text-white" style={{ fontSize: 10, letterSpacing: "3px" }}>
-            Bangkok Real Estate
+            {t("heroEyebrow")}
           </span>
           <div className="h-px w-8 bg-[#B8935A]" />
         </div>
@@ -80,7 +82,7 @@ export default function CinematicHero() {
           className="font-cormorant font-light text-white leading-[1.05] mb-5"
           style={{ fontSize: "clamp(44px, 7vw, 82px)", ...entrance(250), opacity: Math.min(entrance(250).opacity, Math.max(0, 1 - offset / 500)) }}
         >
-          Bangkok&apos;s <em className="italic text-[#E5C795]">Finest</em> Properties
+          {t("heroTitlePre")}<em className="italic text-[#E5C795]">{t("heroTitleEm")}</em>{t("heroTitlePost")}
         </h1>
 
         {/* Subheading */}
@@ -88,8 +90,7 @@ export default function CinematicHero() {
           className="font-sans font-light text-white/70 max-w-[480px] text-center mb-10 leading-relaxed"
           style={{ fontSize: 15, ...entrance(400), opacity: Math.min(entrance(400).opacity, Math.max(0, 1 - offset / 500)) }}
         >
-          Explore condos, houses and apartments across Bangkok&apos;s most
-          sought-after neighbourhoods
+          {t("heroSub")}
         </p>
 
         {/* Search module — kept fully opaque and legible regardless of scroll */}
