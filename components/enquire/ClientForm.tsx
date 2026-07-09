@@ -26,6 +26,7 @@ export default function ClientForm() {
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [showShortStay, setShowShortStay] = useState(false);
 
   const [intent, setIntent] = useState<"rent" | "buy">("rent");
@@ -67,7 +68,8 @@ export default function ClientForm() {
 
   async function submit() {
     setSubmitting(true);
-    await submitEnquiry({
+    setSubmitError("");
+    const ok = await submitEnquiry({
       kind: "CLIENT ENQUIRY (Renter / Buyer)",
       name, phone, line, email,
       summaryTitle: `${isRent ? "Rental" : "Purchase"} enquiry — ${name}`,
@@ -89,7 +91,8 @@ export default function ClientForm() {
       ],
     });
     setSubmitting(false);
-    setDone(true);
+    if (ok) setDone(true);
+    else setSubmitError("Something went wrong sending your enquiry. Please try again, or contact us on LINE or WhatsApp.");
   }
 
   if (done) {
@@ -235,6 +238,9 @@ export default function ClientForm() {
           <Field label="Anything else?" hint="optional">
             <TextArea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Furnished, high floor, near international school…" />
           </Field>
+          {submitError && (
+            <p className="font-sans text-[13px] text-red-500">{submitError}</p>
+          )}
         </StepShell>
       )}
     </>

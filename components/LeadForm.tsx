@@ -54,8 +54,10 @@ export default function LeadForm({ listingId, listingTitle, listingPrice, isRent
     };
 
     try {
-      // Save to Supabase
-      await supabase.from("leads").insert(leadData);
+      // Save to Supabase (supabase-js reports failures via `error`, it does
+      // NOT throw — without this check RLS rejections looked like success)
+      const { error: dbError } = await supabase.from("leads").insert(leadData);
+      if (dbError) throw dbError;
 
       // Send email notification
       await fetch("/api/send-lead-email", {

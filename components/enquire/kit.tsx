@@ -320,10 +320,10 @@ export async function submitEnquiry({
   email?: string;
   summaryTitle: string;
   notesLines: (string | null | undefined)[];
-}) {
+}): Promise<boolean> {
   const notes = [`── ${kind} ──`, ...notesLines.filter(Boolean)].join("\n");
 
-  await supabase.from("leads").insert({
+  const { error } = await supabase.from("leads").insert({
     client_name: name,
     client_phone: phone,
     client_line: line || null,
@@ -331,6 +331,8 @@ export async function submitEnquiry({
     notes,
   });
 
+  // Email is best-effort either way — if the DB insert failed it's also the
+  // team's only copy of the enquiry, so definitely still send it.
   await fetch("/api/send-lead-email", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -343,4 +345,6 @@ export async function submitEnquiry({
       notes,
     }),
   }).catch(() => {});
+
+  return !error;
 }

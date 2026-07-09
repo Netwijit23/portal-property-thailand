@@ -25,6 +25,7 @@ export default function AgentForm() {
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [showShortStay, setShowShortStay] = useState(false);
 
   // Agent
@@ -68,7 +69,8 @@ export default function AgentForm() {
 
   async function submit() {
     setSubmitting(true);
-    await submitEnquiry({
+    setSubmitError("");
+    const ok = await submitEnquiry({
       kind: "AGENT CO-BROKE REQUEST",
       name, phone, line, email,
       summaryTitle: `Co-broke — ${agency || name}`,
@@ -92,7 +94,8 @@ export default function AgentForm() {
       ],
     });
     setSubmitting(false);
-    setDone(true);
+    if (ok) setDone(true);
+    else setSubmitError("Something went wrong sending your request. Please try again, or contact us on LINE or WhatsApp.");
   }
 
   if (done) {
@@ -214,6 +217,9 @@ export default function AgentForm() {
           <Field label="Notes" hint="optional">
             <TextArea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Specific buildings, move-in date, other requirements…" />
           </Field>
+          {submitError && (
+            <p className="font-sans text-[13px] text-red-500">{submitError}</p>
+          )}
         </StepShell>
       )}
     </>

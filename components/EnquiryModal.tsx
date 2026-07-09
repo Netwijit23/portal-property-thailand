@@ -23,6 +23,7 @@ export default function EnquiryModal({ listing, onClose }: Props) {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,23 +44,23 @@ export default function EnquiryModal({ listing, onClose }: Props) {
       status: "new" as const,
       notes: notesLines,
     };
-    try {
-      await supabase.from("leads").insert(leadData);
-      await fetch("/api/send-lead-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...leadData,
-          listing_title: listing.title,
-          listing_price: listing.price,
-        }),
-      });
-    } catch {
-      // Still show success — lead saved to DB even if email fails
-    } finally {
-      setSuccess(true);
-      setLoading(false);
-    }
+    setError("");
+    // supabase-js reports failures via `error`, it does NOT throw — without
+    // this check RLS rejections looked like success.
+    const { error: dbError } = await supabase.from("leads").insert(leadData);
+    // Email is best-effort; if the DB insert failed it's the only copy.
+    await fetch("/api/send-lead-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...leadData,
+        listing_title: listing.title,
+        listing_price: listing.price,
+      }),
+    }).catch(() => {});
+    setLoading(false);
+    if (dbError) setError("Something went wrong. Please try again or contact us on LINE or WhatsApp.");
+    else setSuccess(true);
   }
 
   return (
@@ -205,6 +206,9 @@ export default function EnquiryModal({ listing, onClose }: Props) {
               />
 
               {/* Submit */}
+              {error && (
+                <p className="font-sans text-xs text-red-500">{error}</p>
+              )}
               <button
                 type="submit"
                 disabled={loading}
