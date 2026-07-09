@@ -10,7 +10,7 @@ import LangToggle from "@/components/LangToggle";
 const NAV_LINKS: { key: StringKey; href: string }[] = [
   { key: "navBuy", href: "/listings?type=sale" },
   { key: "navRent", href: "/listings?type=rent" },
-  { key: "navAreas", href: "/#bts-map" },
+  { key: "navAreas", href: "/areas" },
   { key: "navEnquire", href: "/enquire" },
   { key: "navAbout", href: "/about" },
 ];

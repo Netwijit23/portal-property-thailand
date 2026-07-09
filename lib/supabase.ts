@@ -29,6 +29,7 @@ export type DBListing = {
   is_published: boolean
   website_description: string | null
   floor: number | null
+  floor_number: number | null
   bedrooms: number
   bathrooms: number
   size_sqm: number | null
@@ -104,7 +105,9 @@ export function dbToListing(r: DBListing): Listing {
     zone_th: r.zone_th,
     building_name: enOnly(r.project),
     bts_station: enOnly(r.bts_mrt),
-    floor: r.floor,
+    // The DB has both columns: legacy imports fill `floor`, the admin form
+    // writes `floor_number` — read whichever is present so units show a floor.
+    floor: r.floor ?? r.floor_number,
     bedrooms: r.bedrooms,
     bathrooms: r.bathrooms,
     size_sqm: r.size_sqm || 0,

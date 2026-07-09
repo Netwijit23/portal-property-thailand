@@ -1,18 +1,42 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { Bed, Bath, Maximize2 } from "lucide-react";
+import { Bed, Bath, Maximize2, Building2 } from "lucide-react";
 import type { Listing } from "@/lib/supabase";
 import PhotoWatermark from "@/components/PhotoWatermark";
 import SaveButton from "@/components/SaveButton";
 import { useLang } from "@/lib/i18n";
 import FreshnessBadge from "@/components/FreshnessBadge";
 
+// Warm neutral blur-up shown while photos stream in — matches the site's
+// linen/champagne palette so the load feels intentional rather than jarring.
+const BLUR_PLACEHOLDER =
+  "data:image/svg+xml;base64," +
+  btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="8" height="6"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#F5F2EC"/><stop offset="100%" stop-color="#E8E0D2"/></linearGradient></defs><rect width="8" height="6" fill="url(#g)"/></svg>`);
+
 export default function ListingCard({ listing, hero = false }: { listing: Listing; hero?: boolean }) {
   const { lang, t } = useLang();
   const photo = listing.photos?.[0] || "/placeholder.jpg";
   const displayName = listing.building_name || listing.title;
-  const displayZone = lang === "th" && listing.zone_th ? listing.zone_th : listing.zone;
+  // The zone column holds district-cluster strings ("Sukhumvit, Asok, Thonglor,
+  // …"); show the most specific location instead: station + headline area.
+  const rawZone = lang === "th" && listing.zone_th ? listing.zone_th : listing.zone;
+  const headlineZone = rawZone?.split(",")[0]?.trim() || null;
+  const locationParts = [listing.bts_station, headlineZone].filter(
+    (part): part is string => Boolean(part)
+  );
+  // Drop a part that's contained in another ("Thong Lo" vs "Thong Lo BTS")
+  // or an exact duplicate ("Ratchathewi · Ratchathewi").
+  const displayZone = locationParts
+    .filter((part, i) =>
+      !locationParts.some((other, j) => {
+        if (j === i) return false;
+        const a = part.toLowerCase();
+        const b = other.toLowerCase();
+        return b.length > a.length ? b.includes(a) : a === b && j < i;
+      })
+    )
+    .join(" · ") || rawZone;
 
   const isBoth = listing.listing_type === "both";
   const isRent = listing.listing_type === "rent";
@@ -45,8 +69,11 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
               src={photo}
               alt={displayName}
               fill
+              priority={hero}
+              placeholder="blur"
+              blurDataURL={BLUR_PLACEHOLDER}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, 33vw"
+              sizes={hero ? "(max-width: 768px) 100vw, 66vw" : "(max-width: 768px) 100vw, 33vw"}
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
             />
@@ -132,6 +159,11 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
             <span className="flex items-center gap-1 font-sans text-xs">
               <Maximize2 size={12} /> {listing.size_sqm} {t("sqm")}
             </span>
+            {listing.floor != null && (
+              <span className="flex items-center gap-1 font-sans text-xs" title={`Floor ${listing.floor}`}>
+                <Building2 size={12} /> {listing.floor}F
+              </span>
+            )}
           </div>
         </div>
 

@@ -183,6 +183,7 @@ function ListingsGrid({
     filtered = filtered.filter((l) =>
       l.zone?.toLowerCase().includes(q) ||
       l.zone_th?.toLowerCase().includes(q) ||
+      l.bts_station?.toLowerCase().includes(q) ||
       l.title?.toLowerCase().includes(q) ||
       l.building_name?.toLowerCase().includes(q)
     );

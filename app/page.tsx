@@ -11,6 +11,7 @@ import HotListingsSection from "@/components/HotListingsSection";
 // import HeroBackground from "@/components/HeroBackground"; // slideshow option
 
 import BTSMap from "@/components/BTSMap";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import StatsSection from "@/components/StatsSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import FloatingContact from "@/components/FloatingContact";
@@ -133,6 +134,12 @@ export default async function HomePage() {
 
         {/* ─── HOT LISTINGS ─────────────────────────────────────── */}
         <HotListingsSection listings={listings} badges={badges} />
+
+        {/* ─── RECENTLY VIEWED (renders only when the visitor has
+             browsing history — reads pp_recently_viewed locally) ── */}
+        <div className="max-w-7xl mx-auto px-6">
+          <RecentlyViewed />
+        </div>
 
         {/* ─── WHY US ───────────────────────────────────────────── */}
         <StatsSection />
