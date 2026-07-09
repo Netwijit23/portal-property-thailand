@@ -137,7 +137,7 @@ export default function AboutPage() {
                 Browse Properties
               </Link>
               <Link
-                href="/submit"
+                href="/enquire/owner"
                 className="font-sans text-[13px] font-medium px-8 py-3.5 rounded-full border border-[#B8935A] text-[#B8935A] hover:bg-[#B8935A] hover:text-white transition-colors"
               >
                 List a Property

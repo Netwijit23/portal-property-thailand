@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ListingCard from "@/components/ListingCard";
 import ListingsFilters from "@/components/ListingsFilters";
+import ListingsSearch from "@/components/ListingsSearch";
 import Reveal from "@/components/Reveal";
 import SortSelect from "@/components/SortSelect";
 import { Suspense } from "react";
@@ -103,7 +104,7 @@ async function getListings(): Promise<Listing[]> {
 export default async function ListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string }>;
+  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string; q?: string }>;
 }) {
   const params = await searchParams;
   const listings = await getListings();
@@ -123,6 +124,10 @@ export default async function ListingsPage({
               All Properties
             </h1>
           </div>
+
+          <Suspense fallback={null}>
+            <ListingsSearch />
+          </Suspense>
 
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}
@@ -154,9 +159,20 @@ function ListingsGrid({
   initialParams,
 }: {
   listings: Listing[];
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string };
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string; q?: string };
 }) {
   let filtered = listings;
+  if (initialParams.q) {
+    const q = initialParams.q.toLowerCase();
+    filtered = filtered.filter((l) =>
+      l.title?.toLowerCase().includes(q) ||
+      l.building_name?.toLowerCase().includes(q) ||
+      l.zone?.toLowerCase().includes(q) ||
+      l.zone_th?.toLowerCase().includes(q) ||
+      l.bts_station?.toLowerCase().includes(q) ||
+      l.description?.toLowerCase().includes(q)
+    );
+  }
   if (initialParams.type) {
     filtered = filtered.filter((l) =>
       l.listing_type === initialParams.type || l.listing_type === "both"
@@ -242,9 +258,10 @@ function ListingsGrid({
 
 function pageHref(
   targetPage: number,
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string },
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string; q?: string },
 ): string {
   const params = new URLSearchParams();
+  if (initialParams.q) params.set("q", initialParams.q);
   if (initialParams.type) params.set("type", initialParams.type);
   if (initialParams.zone) params.set("zone", initialParams.zone);
   if (initialParams.propType) params.set("propType", initialParams.propType);
@@ -262,7 +279,7 @@ function Pagination({
 }: {
   page: number;
   totalPages: number;
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string };
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string; q?: string };
 }) {
   // Compact page-number window (mobile-friendly — never more than 5 numbers)
   // with edge-anchored ellipses, plus big tappable Prev/Next.
