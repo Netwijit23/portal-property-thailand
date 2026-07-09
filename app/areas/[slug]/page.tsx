@@ -27,22 +27,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 async function getAreaListings(match: string): Promise<Listing[]> {
   noStore();
+  // Filter at the database instead of fetching all ~760 rows per request.
+  // `match` values are our own slugs (no commas/parens), so the .or() string
+  // is safe to interpolate.
   const { data, error } = await supabase
     .from("listings")
     .select("*")
     .in("status", ["available", "reserved", "rented"])
     .eq("is_published", true)
-    .order("created_at", { ascending: false });
+    .or(`zone.ilike.%${match}%,bts_mrt.ilike.%${match}%,project.ilike.%${match}%`)
+    .order("created_at", { ascending: false })
+    .limit(500);
   if (error || !data) return [];
-  const q = match.toLowerCase();
-  return (data as DBListing[])
-    .map(dbToListing)
-    .filter(
-      (l) =>
-        l.zone?.toLowerCase().includes(q) ||
-        l.bts_station?.toLowerCase().includes(q) ||
-        l.building_name?.toLowerCase().includes(q)
-    );
+  return (data as DBListing[]).map(dbToListing);
 }
 
 function compactBaht(n: number): string {

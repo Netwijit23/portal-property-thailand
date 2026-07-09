@@ -118,7 +118,7 @@ export default function Navbar() {
               )}
             </Link>
             <button
-              className={`transition-colors duration-300 ${transparent ? "text-white" : "text-[#0A0A0A]"}`}
+              className={`p-2.5 -m-2.5 transition-colors duration-300 ${transparent ? "text-white" : "text-[#0A0A0A]"}`}
               onClick={() => setOpen(true)}
               aria-label="Open menu"
             >
@@ -135,7 +135,7 @@ export default function Navbar() {
         }`}
       >
         <button
-          className="absolute top-[18px] right-6 text-[#0A0A0A]"
+          className="absolute top-2 right-3.5 p-2.5 text-[#0A0A0A]"
           onClick={() => setOpen(false)}
           aria-label="Close menu"
         >

@@ -10,11 +10,15 @@ export default function LangToggle({ light = false }: { light?: boolean }) {
     ? "text-white/50 hover:text-white/80"
     : "text-[#8A8680] hover:text-[#0A0A0A]";
 
+  // Padding grows the tap target to ~40px (mobile guideline) without
+  // changing the visual size of the tiny type; negative margin keeps layout.
+  const tap = "px-2.5 py-3 -my-3 -mx-1";
+
   return (
-    <div className="flex items-center gap-1.5 font-sans text-[11px] tracking-[1px] select-none">
+    <div className="flex items-center font-sans text-[11px] tracking-[1px] select-none">
       <button
         onClick={() => setLang("en")}
-        className={`press uppercase transition-colors duration-200 ${lang === "en" ? active : inactive}`}
+        className={`press uppercase transition-colors duration-200 ${tap} ${lang === "en" ? active : inactive}`}
         aria-pressed={lang === "en"}
       >
         EN
@@ -22,7 +26,7 @@ export default function LangToggle({ light = false }: { light?: boolean }) {
       <span className={light ? "text-white/30" : "text-[#E8E4DC]"}>/</span>
       <button
         onClick={() => setLang("th")}
-        className={`press transition-colors duration-200 ${lang === "th" ? active : inactive}`}
+        className={`press transition-colors duration-200 ${tap} ${lang === "th" ? active : inactive}`}
         aria-pressed={lang === "th"}
       >
         ไทย
