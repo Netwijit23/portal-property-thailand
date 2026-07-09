@@ -110,6 +110,7 @@ export default function ListingsFilters() {
     (key: string, value: string) => {
       const params = new URLSearchParams(searchParams.toString());
       if (value) params.set(key, value); else params.delete(key);
+      params.delete("page"); // any filter change goes back to page 1
       router.push(`${pathname}?${params.toString()}`);
     },
     [searchParams, router, pathname]

@@ -17,6 +17,7 @@ export default function SortSelect() {
   function onChange(value: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set("sort", value); else params.delete("sort");
+    params.delete("page"); // sort change goes back to page 1
     router.push(`${pathname}?${params.toString()}`);
   }
 

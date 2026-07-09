@@ -103,7 +103,7 @@ async function getListings(): Promise<Listing[]> {
 export default async function ListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string }>;
+  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const listings = await getListings();
@@ -147,12 +147,14 @@ function effectivePrice(l: Listing): number | null {
   return l.rent_price ?? l.sale_price ?? null;
 }
 
+const PAGE_SIZE = 24;
+
 function ListingsGrid({
   listings,
   initialParams,
 }: {
   listings: Listing[];
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string };
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string };
 }) {
   let filtered = listings;
   if (initialParams.type) {
@@ -202,7 +204,13 @@ function ListingsGrid({
     );
   }
 
-  const [first, ...rest] = filtered;
+  // Paginate the already-filtered set — rendering all ~700 cards (with
+  // images) at once was the single biggest mobile performance problem on
+  // this page: a huge DOM, hundreds of images in flight, sluggish scroll.
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const page = Math.min(Math.max(1, parseInt(initialParams.page ?? "1", 10) || 1), totalPages);
+  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const [first, ...rest] = pageItems;
 
   return (
     <div>
@@ -224,7 +232,85 @@ function ListingsGrid({
           </Reveal>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <Pagination page={page} totalPages={totalPages} initialParams={initialParams} />
+      )}
     </div>
+  );
+}
+
+function pageHref(
+  targetPage: number,
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string },
+): string {
+  const params = new URLSearchParams();
+  if (initialParams.type) params.set("type", initialParams.type);
+  if (initialParams.zone) params.set("zone", initialParams.zone);
+  if (initialParams.propType) params.set("propType", initialParams.propType);
+  if (initialParams.bedrooms) params.set("bedrooms", initialParams.bedrooms);
+  if (initialParams.sort) params.set("sort", initialParams.sort);
+  if (targetPage > 1) params.set("page", String(targetPage));
+  const qs = params.toString();
+  return qs ? `/listings?${qs}` : "/listings";
+}
+
+function Pagination({
+  page,
+  totalPages,
+  initialParams,
+}: {
+  page: number;
+  totalPages: number;
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string };
+}) {
+  // Compact page-number window (mobile-friendly — never more than 5 numbers)
+  // with edge-anchored ellipses, plus big tappable Prev/Next.
+  const windowSize = 5;
+  let start = Math.max(1, page - Math.floor(windowSize / 2));
+  const end = Math.min(totalPages, start + windowSize - 1);
+  start = Math.max(1, end - windowSize + 1);
+  const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+
+  const pageBtn = (className: string) =>
+    `flex items-center justify-center min-w-[40px] h-10 px-2 rounded-full font-sans text-sm transition-colors ${className}`;
+  const inactive = "text-[#8A8680] hover:bg-[#F5F2EC]";
+  const active = "bg-[#0A0A0A] text-white";
+
+  return (
+    <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5 mt-10 flex-wrap">
+      {page > 1 ? (
+        <a href={pageHref(page - 1, initialParams)} className={pageBtn(inactive)} aria-label="Previous page">‹</a>
+      ) : (
+        <span className={pageBtn("text-[#D8D4CC] pointer-events-none")} aria-hidden>‹</span>
+      )}
+
+      {start > 1 && (
+        <>
+          <a href={pageHref(1, initialParams)} className={pageBtn(inactive)}>1</a>
+          {start > 2 && <span className="px-1 text-[#8A8680]">···</span>}
+        </>
+      )}
+
+      {pages.map((p) => (
+        <a key={p} href={pageHref(p, initialParams)} className={pageBtn(p === page ? active : inactive)} aria-current={p === page ? "page" : undefined}>
+          {p}
+        </a>
+      ))}
+
+      {end < totalPages && (
+        <>
+          {end < totalPages - 1 && <span className="px-1 text-[#8A8680]">···</span>}
+          <a href={pageHref(totalPages, initialParams)} className={pageBtn(inactive)}>{totalPages}</a>
+        </>
+      )}
+
+      {page < totalPages ? (
+        <a href={pageHref(page + 1, initialParams)} className={pageBtn(inactive)} aria-label="Next page">›</a>
+      ) : (
+        <span className={pageBtn("text-[#D8D4CC] pointer-events-none")} aria-hidden>›</span>
+      )}
+    </nav>
   );
 }
 

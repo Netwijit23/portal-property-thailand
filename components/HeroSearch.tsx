@@ -259,8 +259,9 @@ export default function HeroSearch() {
       {/* Search card */}
       <div className="bg-white rounded-[14px] shadow-[0_8px_48px_rgba(0,0,0,0.2)] p-3 flex flex-col gap-2">
 
-        {/* ── Row 1: Location + Property type ── */}
-        <div className="flex gap-2">
+        {/* ── Row 1: Location + Property type — stacks on phones so the
+             location placeholder isn't squeezed down to a few characters ── */}
+        <div className="flex flex-col sm:flex-row gap-2">
           {/* Location with autocomplete */}
           <div ref={locRef} className="relative flex-1 min-w-0">
             <div className="flex items-center gap-2 border border-[#E8E4DC] rounded-xl px-3.5 py-3 focus-within:border-[#B8935A] transition-colors bg-white">
@@ -368,7 +369,7 @@ export default function HeroSearch() {
           <select
             value={propType}
             onChange={(e) => setPropType(e.target.value)}
-            className="font-sans text-sm text-[#0A0A0A] border border-[#E8E4DC] rounded-xl px-3.5 py-3 outline-none bg-white cursor-pointer focus:border-[#B8935A] transition-colors shrink-0"
+            className="font-sans text-sm text-[#0A0A0A] border border-[#E8E4DC] rounded-xl px-3.5 py-3 outline-none bg-white cursor-pointer focus:border-[#B8935A] transition-colors w-full sm:w-auto sm:shrink-0"
           >
             {PROP_TYPES.map((p) => (
               <option key={p}>{p}</option>
