@@ -51,23 +51,25 @@ const LOCATION_GROUPS: { label: string; icon: string; items: string[] }[] = [
 ];
 
 // ── Budget presets ────────────────────────────────────────────────────────────
-const RENT_BUDGETS = [
-  "Any budget",
-  "Under ฿15,000",
-  "฿15,000 – 25,000",
-  "฿25,000 – 40,000",
-  "฿40,000 – 60,000",
-  "฿60,000 – 100,000",
-  "฿100,000+",
+// Each preset carries the numeric bounds sent to /listings as priceMin/priceMax.
+type BudgetPreset = { label: string; min?: number; max?: number };
+const RENT_BUDGETS: BudgetPreset[] = [
+  { label: "Any budget" },
+  { label: "Under ฿15,000", max: 15000 },
+  { label: "฿15,000 – 25,000", min: 15000, max: 25000 },
+  { label: "฿25,000 – 40,000", min: 25000, max: 40000 },
+  { label: "฿40,000 – 60,000", min: 40000, max: 60000 },
+  { label: "฿60,000 – 100,000", min: 60000, max: 100000 },
+  { label: "฿100,000+", min: 100000 },
 ];
-const SALE_BUDGETS = [
-  "Any budget",
-  "Under ฿3M",
-  "฿3M – 8M",
-  "฿8M – 15M",
-  "฿15M – 30M",
-  "฿30M – 50M",
-  "฿50M+",
+const SALE_BUDGETS: BudgetPreset[] = [
+  { label: "Any budget" },
+  { label: "Under ฿3M", max: 3_000_000 },
+  { label: "฿3M – 8M", min: 3_000_000, max: 8_000_000 },
+  { label: "฿8M – 15M", min: 8_000_000, max: 15_000_000 },
+  { label: "฿15M – 30M", min: 15_000_000, max: 30_000_000 },
+  { label: "฿30M – 50M", min: 30_000_000, max: 50_000_000 },
+  { label: "฿50M+", min: 50_000_000 },
 ];
 
 // ── Bedroom options ───────────────────────────────────────────────────────────
@@ -80,7 +82,9 @@ const BED_OPTIONS = [
   { label: "5+", value: 5 },
 ];
 
-const PROP_TYPES = ["Any type", "Condo", "House", "Townhouse", "Villa"];
+// Only types that exist in the data model — every listing maps to condo or
+// house, so offering more here just produces guaranteed-empty result pages.
+const PROP_TYPES = ["Any type", "Condo", "House"];
 
 export default function HeroSearch() {
   const router = useRouter();
@@ -230,8 +234,14 @@ export default function HeroSearch() {
     if (location.trim()) params.set("zone", location.trim());
     if (propType !== "Any type") params.set("propType", propType.toLowerCase());
     if (selectedBeds.length > 0) params.set("bedrooms", selectedBeds.join(","));
-    const bval = budgetCustom.trim() || (budget !== "Any budget" ? budget : "");
-    if (bval) params.set("maxPrice", bval);
+    const custom = parseInt(budgetCustom.replace(/[^\d]/g, ""), 10);
+    if (budgetCustom.trim() && !isNaN(custom) && custom > 0) {
+      params.set("priceMax", String(custom));
+    } else {
+      const preset = budgetOptions.find((b) => b.label === budget);
+      if (preset?.min) params.set("priceMin", String(preset.min));
+      if (preset?.max) params.set("priceMax", String(preset.max));
+    }
     router.push(`/listings?${params.toString()}`);
   }
 
@@ -460,19 +470,19 @@ export default function HeroSearch() {
                   </p>
                   {budgetOptions.map((opt) => (
                     <button
-                      key={opt}
+                      key={opt.label}
                       onClick={() => {
-                        setBudget(opt);
+                        setBudget(opt.label);
                         setBudgetCustom("");
                         setShowBudget(false);
                       }}
                       className={`w-full text-left font-sans text-[13px] px-4 py-2 hover:bg-[#F5F2EC] transition-colors ${
-                        budget === opt && !budgetCustom
+                        budget === opt.label && !budgetCustom
                           ? "text-[#B8935A] font-medium"
                           : "text-[#0A0A0A]"
                       }`}
                     >
-                      {opt}
+                      {opt.label}
                     </button>
                   ))}
                 </div>

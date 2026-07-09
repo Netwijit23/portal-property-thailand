@@ -75,7 +75,7 @@ function FilterContent({ current, updateParam, clearAll }: {
           {[{ label: "Any", value: "" }, { label: "1+", value: "1" }, { label: "2+", value: "2" }, { label: "3+", value: "3" }, { label: "4+", value: "4" }].map((opt) => (
             <button
               key={opt.value}
-              onClick={() => updateParam("bedrooms", opt.value)}
+              onClick={() => updateParam("minBeds", opt.value)}
               className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${
                 current.bedrooms === opt.value
                   ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
@@ -110,6 +110,9 @@ export default function ListingsFilters() {
     (key: string, value: string) => {
       const params = new URLSearchParams(searchParams.toString());
       if (value) params.set(key, value); else params.delete(key);
+      // The sidebar's minimum-bedrooms filter supersedes the hero search's
+      // exact-count selection — keeping both active would confuse results.
+      if (key === "minBeds") params.delete("bedrooms");
       params.delete("page"); // any filter change goes back to page 1
       router.push(`${pathname}?${params.toString()}`);
     },
@@ -122,7 +125,7 @@ export default function ListingsFilters() {
     type: searchParams.get("type") || "",
     zone: searchParams.get("zone") || "",
     propType: searchParams.get("propType") || "",
-    bedrooms: searchParams.get("bedrooms") || "",
+    bedrooms: searchParams.get("minBeds") || "",
   };
 
   const activeCount = [current.type, current.zone, current.propType, current.bedrooms].filter(Boolean).length;

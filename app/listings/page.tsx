@@ -104,7 +104,7 @@ async function getListings(): Promise<Listing[]> {
 export default async function ListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string; q?: string }>;
+  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; view?: string; page?: string; q?: string }>;
 }) {
   const params = await searchParams;
   const listings = await getListings();
@@ -159,7 +159,7 @@ function ListingsGrid({
   initialParams,
 }: {
   listings: Listing[];
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string; q?: string };
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; view?: string; page?: string; q?: string };
 }) {
   let filtered = listings;
   if (initialParams.q) {
@@ -188,11 +188,28 @@ function ListingsGrid({
     );
   }
   if (initialParams.propType) filtered = filtered.filter((l) => l.type === initialParams.propType);
+  // `bedrooms` is the hero search's multi-select of exact counts (0=studio, 5=5+);
+  // `minBeds` is the sidebar's "N+" minimum filter. They are different semantics.
   if (initialParams.bedrooms) {
     const beds = initialParams.bedrooms.split(",").map(Number).filter((n) => !isNaN(n));
     filtered = filtered.filter((l) =>
       beds.some((b) => (b >= 5 ? l.bedrooms >= 5 : l.bedrooms === b))
     );
+  }
+  if (initialParams.minBeds) {
+    const min = parseInt(initialParams.minBeds, 10);
+    if (!isNaN(min)) filtered = filtered.filter((l) => l.bedrooms >= min);
+  }
+  const priceMin = parseInt(initialParams.priceMin ?? "", 10);
+  const priceMax = parseInt(initialParams.priceMax ?? "", 10);
+  if (!isNaN(priceMin) || !isNaN(priceMax)) {
+    filtered = filtered.filter((l) => {
+      const p = effectivePrice(l);
+      if (p == null) return false; // price-on-request can't satisfy a budget filter
+      if (!isNaN(priceMin) && p < priceMin) return false;
+      if (!isNaN(priceMax) && p > priceMax) return false;
+      return true;
+    });
   }
 
   if (initialParams.sort === "price-asc" || initialParams.sort === "price-desc") {
@@ -258,7 +275,7 @@ function ListingsGrid({
 
 function pageHref(
   targetPage: number,
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string; q?: string },
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; view?: string; page?: string; q?: string },
 ): string {
   const params = new URLSearchParams();
   if (initialParams.q) params.set("q", initialParams.q);
@@ -266,6 +283,9 @@ function pageHref(
   if (initialParams.zone) params.set("zone", initialParams.zone);
   if (initialParams.propType) params.set("propType", initialParams.propType);
   if (initialParams.bedrooms) params.set("bedrooms", initialParams.bedrooms);
+  if (initialParams.minBeds) params.set("minBeds", initialParams.minBeds);
+  if (initialParams.priceMin) params.set("priceMin", initialParams.priceMin);
+  if (initialParams.priceMax) params.set("priceMax", initialParams.priceMax);
   if (initialParams.sort) params.set("sort", initialParams.sort);
   if (targetPage > 1) params.set("page", String(targetPage));
   const qs = params.toString();
@@ -279,7 +299,7 @@ function Pagination({
 }: {
   page: number;
   totalPages: number;
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; sort?: string; view?: string; page?: string; q?: string };
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; view?: string; page?: string; q?: string };
 }) {
   // Compact page-number window (mobile-friendly — never more than 5 numbers)
   // with edge-anchored ellipses, plus big tappable Prev/Next.

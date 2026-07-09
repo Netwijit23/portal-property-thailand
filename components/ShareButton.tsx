@@ -10,10 +10,17 @@ export default function ShareButton({ url }: { title: string; url: string }) {
   const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
 
   function copyLink() {
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        // Clipboard can be denied (permissions / non-secure context) — fall
+        // back to the prompt so the user can still copy the link.
+        window.prompt("Copy this link:", url);
+      });
   }
 
   return (

@@ -59,8 +59,10 @@ export default function LeadForm({ listingId, listingTitle, listingPrice, isRent
       const { error: dbError } = await supabase.from("leads").insert(leadData);
       if (dbError) throw dbError;
 
-      // Send email notification
-      await fetch("/api/send-lead-email", {
+      // Email notification is best-effort: the lead is already saved, so a
+      // failed email must not show an error (the user would resubmit and
+      // create a duplicate lead).
+      fetch("/api/send-lead-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -68,7 +70,7 @@ export default function LeadForm({ listingId, listingTitle, listingPrice, isRent
           listing_title: listingTitle,
           listing_price: listingPrice,
         }),
-      });
+      }).catch(() => {});
 
       setSuccess(true);
     } catch {
