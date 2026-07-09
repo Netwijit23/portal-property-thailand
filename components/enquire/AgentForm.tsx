@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipMulti, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry } from "./kit";
+import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipMulti, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt } from "./kit";
 
 const AREAS = [
   "Sukhumvit", "Silom", "Sathorn", "Thonglor", "Ekkamai", "Ari",
@@ -92,6 +92,10 @@ export default function AgentForm() {
         split ? `Commission split expectation: ${split}` : null,
         notes ? `Notes: ${notes}` : null,
       ],
+      listingType: isRent ? "rent" : "sale",
+      bedroomsWanted: bedsToInt(beds),
+      zonesInterested: areas,
+      budgetMax: budget ? budgetToInt(budget) : null,
     });
     setSubmitting(false);
     if (ok) setDone(true);

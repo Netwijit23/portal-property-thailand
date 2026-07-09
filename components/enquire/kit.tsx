@@ -301,6 +301,38 @@ export function ShortStayNotice({
   );
 }
 
+// ─── Structured-field helpers (chip values → typed columns) ─────────────────
+
+/** "Studio" → 0, "4+" → 4, "2" → 2, unset/unrecognised → null. */
+export function bedsToInt(beds: string | null): number | null {
+  if (!beds) return null;
+  if (beds === "Studio") return 0;
+  if (beds === "4+") return 4;
+  const n = parseInt(beds, 10);
+  return Number.isNaN(n) ? null : n;
+}
+
+/** "฿45,000" → 45000, blank/unparsable → null. */
+export function budgetToInt(budget: string): number | null {
+  const n = parseInt(budget.replace(/[^\d]/g, ""), 10);
+  return Number.isNaN(n) ? null : n;
+}
+
+/** Move-in timeline chip → an approximate ISO date, used only to compute
+ * urgency (e.g. "within 7 days" → High priority) on the admin side. "Just
+ * browsing" has no real timeline, so it's intentionally left null. */
+export function timelineToDate(timeline: string): string | null {
+  const days: Record<string, number> = {
+    "ASAP": 0,
+    "Within 1 month": 20,
+    "1–3 months": 75,
+  };
+  if (!(timeline in days)) return null;
+  const d = new Date();
+  d.setDate(d.getDate() + days[timeline]);
+  return d.toISOString().slice(0, 10);
+}
+
 // ─── Submit helper: writes to leads + fires email notification ───────────────
 import { supabase } from "@/lib/supabase";
 
@@ -312,6 +344,11 @@ export async function submitEnquiry({
   email,
   summaryTitle,
   notesLines,
+  listingType,
+  bedroomsWanted,
+  zonesInterested,
+  budgetMax,
+  moveInDate,
 }: {
   kind: string;
   name: string;
@@ -320,6 +357,13 @@ export async function submitEnquiry({
   email?: string;
   summaryTitle: string;
   notesLines: (string | null | undefined)[];
+  // Structured columns (not just the notes blob) so Kanban/table cards show
+  // the enquiry at a glance without opening the lead.
+  listingType?: "rent" | "sale" | null;
+  bedroomsWanted?: number | null;
+  zonesInterested?: string[] | null;
+  budgetMax?: number | null;
+  moveInDate?: string | null; // ISO date (YYYY-MM-DD)
 }): Promise<boolean> {
   const notes = [`── ${kind} ──`, ...notesLines.filter(Boolean)].join("\n");
 
@@ -329,6 +373,11 @@ export async function submitEnquiry({
     client_line: line || null,
     status: "new",
     notes,
+    listing_type: listingType ?? null,
+    bedrooms_wanted: bedroomsWanted ?? null,
+    zones_interested: zonesInterested?.length ? zonesInterested : null,
+    budget_max: budgetMax ?? null,
+    move_in_date: moveInDate ?? null,
   });
 
   // Email is best-effort either way — if the DB insert failed it's also the

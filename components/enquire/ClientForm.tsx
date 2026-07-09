@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipMulti, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry } from "./kit";
+import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipMulti, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt, timelineToDate } from "./kit";
 
 const AREAS = [
   "Sukhumvit", "Silom", "Sathorn", "Thonglor", "Ekkamai", "Ari",
@@ -89,6 +89,11 @@ export default function ClientForm() {
         email ? `Email: ${email}` : null,
         notes ? `Notes: ${notes}` : null,
       ],
+      listingType: isRent ? "rent" : "sale",
+      bedroomsWanted: bedsToInt(beds),
+      zonesInterested: areas,
+      budgetMax: budget ? budgetToInt(budget) : null,
+      moveInDate: timeline ? timelineToDate(timeline) : null,
     });
     setSubmitting(false);
     if (ok) setDone(true);
