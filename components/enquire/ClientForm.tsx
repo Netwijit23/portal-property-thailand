@@ -89,11 +89,20 @@ export default function ClientForm() {
         email ? `Email: ${email}` : null,
         notes ? `Notes: ${notes}` : null,
       ],
+      // Only genuinely freeform text goes into the lead's notes column —
+      // everything else lands in its own typed field below.
+      dbNotesLines: [notes ? `Notes: ${notes}` : null],
       listingType: isRent ? "rent" : "sale",
+      propertyType: propType === "any" ? null : propType,
       bedroomsWanted: bedsToInt(beds),
       zonesInterested: areas,
       budgetMax: budget ? budgetToInt(budget) : null,
       moveInDate: timeline ? timelineToDate(timeline) : null,
+      stayLength: isRent && stayLength ? stayLength : null,
+      nationality: nationality || null,
+      occupants: occupants || null,
+      pets: pets === "yes" ? (petDetails || "Yes") : "No",
+      occupation: occupation || null,
     });
     setSubmitting(false);
     if (ok) setDone(true);

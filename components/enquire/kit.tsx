@@ -344,11 +344,18 @@ export async function submitEnquiry({
   email,
   summaryTitle,
   notesLines,
+  dbNotesLines,
   listingType,
+  propertyType,
   bedroomsWanted,
   zonesInterested,
   budgetMax,
   moveInDate,
+  stayLength,
+  nationality,
+  occupants,
+  pets,
+  occupation,
 }: {
   kind: string;
   name: string;
@@ -356,28 +363,46 @@ export async function submitEnquiry({
   line?: string;
   email?: string;
   summaryTitle: string;
+  /** Full pretty text for the notification email. */
   notesLines: (string | null | undefined)[];
-  // Structured columns (not just the notes blob) so Kanban/table cards show
-  // the enquiry at a glance without opening the lead.
+  /** Genuinely freeform leftovers stored in the lead's notes column — the
+   * structured answers below go into their own typed columns instead. */
+  dbNotesLines?: (string | null | undefined)[];
   listingType?: "rent" | "sale" | null;
+  propertyType?: string | null;
   bedroomsWanted?: number | null;
   zonesInterested?: string[] | null;
   budgetMax?: number | null;
   moveInDate?: string | null; // ISO date (YYYY-MM-DD)
+  stayLength?: string | null;
+  nationality?: string | null;
+  occupants?: string | null;
+  pets?: string | null;
+  occupation?: string | null;
 }): Promise<boolean> {
-  const notes = [`── ${kind} ──`, ...notesLines.filter(Boolean)].join("\n");
+  const emailNotes = [`── ${kind} ──`, ...notesLines.filter(Boolean)].join("\n");
+  // The "── kind ──" header stays in DB notes: the admin's lead-type badges
+  // (Client / Co-broke / Owner) are derived from it.
+  const dbNotes = [`── ${kind} ──`, ...(dbNotesLines ?? notesLines).filter(Boolean)].join("\n");
 
   const { error } = await supabase.from("leads").insert({
     client_name: name,
     client_phone: phone,
     client_line: line || null,
+    email: email || null,
     status: "new",
-    notes,
+    notes: dbNotes,
     listing_type: listingType ?? null,
+    property_type: propertyType ?? null,
     bedrooms_wanted: bedroomsWanted ?? null,
     zones_interested: zonesInterested?.length ? zonesInterested : null,
     budget_max: budgetMax ?? null,
     move_in_date: moveInDate ?? null,
+    stay_length: stayLength ?? null,
+    nationality: nationality ?? null,
+    occupants: occupants ?? null,
+    pets: pets ?? null,
+    occupation: occupation ?? null,
   });
 
   // Email is best-effort either way — if the DB insert failed it's also the
@@ -391,7 +416,7 @@ export async function submitEnquiry({
       client_phone: phone,
       client_email: email || "",
       client_line: line || "",
-      notes,
+      notes: emailNotes,
     }),
   }).catch(() => {});
 

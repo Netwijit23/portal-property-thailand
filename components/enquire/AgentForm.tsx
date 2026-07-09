@@ -92,10 +92,23 @@ export default function AgentForm() {
         split ? `Commission split expectation: ${split}` : null,
         notes ? `Notes: ${notes}` : null,
       ],
+      // Co-broke specifics have no typed columns — keep them in notes; the
+      // client profile answers go into their own fields.
+      dbNotesLines: [
+        agency ? `Agency: ${agency}` : null,
+        targetCondo ? `Target condo/building: ${targetCondo}` : null,
+        split ? `Commission split expectation: ${split}` : null,
+        notes ? `Notes: ${notes}` : null,
+      ],
       listingType: isRent ? "rent" : "sale",
       bedroomsWanted: bedsToInt(beds),
       zonesInterested: areas,
       budgetMax: budget ? budgetToInt(budget) : null,
+      stayLength: isRent && stayLength ? stayLength : null,
+      nationality: nationality || null,
+      occupants: occupants || null,
+      pets: pets === "yes" ? (petDetails || "Yes") : "No",
+      occupation: occupation || null,
     });
     setSubmitting(false);
     if (ok) setDone(true);
