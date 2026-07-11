@@ -1,11 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipMulti, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt, timelineToDate } from "./kit";
+import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt, timelineToDate, LocationMultiSelect } from "./kit";
 
-const AREAS = [
-  "Sukhumvit", "Silom", "Sathorn", "Thonglor", "Ekkamai", "Ari",
-  "Asok", "Phrom Phong", "On Nut", "Ratchada", "Rama 9", "Riverside",
-];
 const BEDS = [
   { label: "Studio", value: "Studio" },
   { label: "1", value: "1" },
@@ -52,10 +48,6 @@ export default function ClientForm() {
 
   const isRent = intent === "rent";
   const totalSteps = 4;
-
-  function toggleArea(a: string) {
-    setAreas((p) => (p.includes(a) ? p.filter((x) => x !== a) : [...p, a]));
-  }
 
   // Step 2 → 3, with the short-stay check for rentals
   function nextFromStep2() {
@@ -170,7 +162,7 @@ export default function ClientForm() {
           nextLabel="Continue"
         >
           <Field label="Preferred areas" hint="select any">
-            <ChipMulti options={AREAS} selected={areas} onToggle={toggleArea} />
+            <LocationMultiSelect selected={areas} onChange={setAreas} />
           </Field>
           <Field label={`Budget${isRent ? " (per month)" : ""}`} hint="optional">
             <PrefixInput
@@ -245,7 +237,7 @@ export default function ClientForm() {
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Name"><TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" /></Field>
-            <Field label="Phone / WhatsApp"><TextInput value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+66…" /></Field>
+            <Field label="Phone / WhatsApp"><TextInput type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d+\-()\s]/g, ""))} placeholder="+66…" /></Field>
             <Field label="Email" hint="optional"><TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" /></Field>
             <Field label="LINE ID" hint="optional"><TextInput value={line} onChange={(e) => setLine(e.target.value)} placeholder="@yourid" /></Field>
           </div>

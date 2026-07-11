@@ -1,6 +1,7 @@
 "use client";
-import type { ReactNode } from "react";
-import { Check } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Check, X } from "lucide-react";
+import { STATION_GROUPS, BANGKOK_ZONES } from "@/lib/bangkok-transit";
 
 // ─── Shared Apple-style intake form primitives ───────────────────────────────
 
@@ -236,6 +237,240 @@ export function SuccessCard({
       </p>
     </div>
   );
+}
+
+// ─── Pickers that constrain input to real values (anti-spam) ────────────────
+// Free-text condo/area fields let spam bots dump arbitrary text; these pick
+// from real data instead — a searchable list, not an open textbox.
+
+/** Single-select searchable dropdown. `allowCustom` lets the typed text
+ * itself be the value when it's not in the options list (e.g. a condo
+ * that isn't in our database yet) — still constrained to "pick or add one",
+ * not a wide-open field. */
+export function ComboSelect({
+  value,
+  onChange,
+  options,
+  placeholder,
+  allowCustom = true,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder?: string;
+  allowCustom?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState(value);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setQuery(value); }, [value]);
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = query.trim()
+    ? options.filter((o) => o.toLowerCase().includes(query.trim().toLowerCase()))
+    : options;
+  const isNew = allowCustom && query.trim().length > 0 &&
+    !options.some((o) => o.toLowerCase() === query.trim().toLowerCase());
+
+  function select(v: string) {
+    onChange(v);
+    setQuery(v);
+    setOpen(false);
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          if (allowCustom) onChange(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") setOpen(false);
+          if (e.key === "Enter") e.preventDefault();
+        }}
+        placeholder={placeholder}
+        autoComplete="off"
+        className={baseInput}
+      />
+      {open && (
+        <div
+          className="absolute z-50 w-full mt-1.5 rounded-xl overflow-hidden bg-white border border-[#E8E4DC]"
+          style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.12)", maxHeight: 260, display: "flex", flexDirection: "column" }}
+        >
+          <div className="overflow-y-auto flex-1 py-1">
+            {isNew && (
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); select(query.trim()); }}
+                className="w-full text-left px-4 py-2.5 font-sans text-[13px] text-[#B8935A] hover:bg-[#F5F2EC] border-b border-[#E8E4DC]"
+              >
+                Use &ldquo;{query.trim()}&rdquo;
+              </button>
+            )}
+            {filtered.map((o) => (
+              <button
+                key={o}
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); select(o); }}
+                className={`w-full text-left px-4 py-2.5 font-sans text-[14px] hover:bg-[#F5F2EC] ${value === o ? "text-[#B8935A]" : "text-[#0A0A0A]"}`}
+              >
+                {o}
+              </button>
+            ))}
+            {filtered.length === 0 && !isNew && (
+              <div className="px-4 py-6 font-sans text-[13px] text-center text-[#86868B]">No matches</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Multi-select dropdown of real Bangkok zones + BTS/MRT stations, grouped
+ * by line. Selections render as removable chips above the search box. */
+export function LocationMultiSelect({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  function toggle(v: string) {
+    onChange(selected.includes(v) ? selected.filter((x) => x !== v) : [...selected, v]);
+  }
+
+  const q = query.trim().toLowerCase();
+  const filteredZones = q ? BANGKOK_ZONES.filter((z) => z.toLowerCase().includes(q)) : BANGKOK_ZONES;
+  const filteredGroups = STATION_GROUPS.map((g) => ({
+    ...g,
+    stations: q ? g.stations.filter((s) => s.toLowerCase().includes(q)) : g.stations,
+  })).filter((g) => g.stations.length > 0);
+  const noResults = filteredZones.length === 0 && filteredGroups.length === 0;
+
+  return (
+    <div ref={ref} className="relative">
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2.5">
+          {selected.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => toggle(s)}
+              className="inline-flex items-center gap-1.5 font-sans text-[12.5px] pl-3 pr-2 py-1.5 rounded-full bg-[#B8935A] text-white"
+            >
+              {s}
+              <X size={12} strokeWidth={2.5} />
+            </button>
+          ))}
+        </div>
+      )}
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}
+        placeholder="Search zone or BTS/MRT station…"
+        autoComplete="off"
+        className={baseInput}
+      />
+      {open && (
+        <div
+          className="absolute z-50 w-full mt-1.5 rounded-xl overflow-hidden bg-white border border-[#E8E4DC]"
+          style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.12)", maxHeight: 280, display: "flex", flexDirection: "column" }}
+        >
+          <div className="overflow-y-auto flex-1 py-1">
+            {filteredZones.length > 0 && (
+              <>
+                <div className="px-4 pt-2 pb-1 font-sans text-[10.5px] uppercase tracking-[1.5px] text-[#B0AAA2] font-medium">Zones</div>
+                {filteredZones.map((z) => (
+                  <button
+                    key={z}
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); toggle(z); }}
+                    className={`w-full flex items-center justify-between px-4 py-2 font-sans text-[14px] hover:bg-[#F5F2EC] ${selected.includes(z) ? "text-[#B8935A]" : "text-[#0A0A0A]"}`}
+                  >
+                    {z}
+                    {selected.includes(z) && <Check size={14} strokeWidth={2.5} />}
+                  </button>
+                ))}
+              </>
+            )}
+            {filteredGroups.map((g) => (
+              <div key={g.line}>
+                <div className="px-4 pt-3 pb-1 flex items-center gap-2 font-sans text-[10.5px] uppercase tracking-[1.5px] text-[#B0AAA2] font-medium border-t border-[#F0EDE8] mt-1">
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: g.color }} />
+                  {g.line}
+                </div>
+                {g.stations.map((s) => (
+                  <button
+                    key={`${g.line}-${s}`}
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); toggle(s); }}
+                    className={`w-full flex items-center justify-between px-4 py-2 font-sans text-[14px] hover:bg-[#F5F2EC] ${selected.includes(s) ? "text-[#B8935A]" : "text-[#0A0A0A]"}`}
+                  >
+                    {s}
+                    {selected.includes(s) && <Check size={14} strokeWidth={2.5} />}
+                  </button>
+                ))}
+              </div>
+            ))}
+            {noResults && (
+              <div className="px-4 py-6 font-sans text-[13px] text-center text-[#86868B]">No matches</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Real project names, fetched once and cached module-wide for the session —
+ * feeds ComboSelect so the "building name" field picks from real listings
+ * instead of accepting arbitrary text. */
+let cachedProjectOptions: string[] | null = null;
+
+export function useProjectOptions(): string[] {
+  const [projects, setProjects] = useState<string[]>(cachedProjectOptions ?? []);
+  useEffect(() => {
+    if (cachedProjectOptions) { setProjects(cachedProjectOptions); return; }
+    supabase
+      .from("listings")
+      .select("project")
+      .eq("is_published", true)
+      .not("project", "is", null)
+      .then(({ data }) => {
+        const uniq = Array.from(new Set((data ?? []).map((r) => (r as { project: string }).project).filter(Boolean))).sort();
+        cachedProjectOptions = uniq;
+        setProjects(uniq);
+      });
+  }, []);
+  return projects;
 }
 
 // ─── Short-stay notice ────────────────────────────────────────────────────────

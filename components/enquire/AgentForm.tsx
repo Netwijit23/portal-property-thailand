@@ -1,11 +1,7 @@
 "use client";
 import { useState } from "react";
-import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipMulti, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt } from "./kit";
+import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt, LocationMultiSelect, ComboSelect, useProjectOptions } from "./kit";
 
-const AREAS = [
-  "Sukhumvit", "Silom", "Sathorn", "Thonglor", "Ekkamai", "Ari",
-  "Asok", "Phrom Phong", "On Nut", "Ratchada", "Rama 9", "Riverside",
-];
 const BEDS = [
   { label: "Studio", value: "Studio" },
   { label: "1", value: "1" },
@@ -55,9 +51,7 @@ export default function AgentForm() {
 
   const isRent = intent === "rent";
 
-  function toggleArea(a: string) {
-    setAreas((p) => (p.includes(a) ? p.filter((x) => x !== a) : [...p, a]));
-  }
+  const projectOptions = useProjectOptions();
 
   function trySubmit() {
     if (isRent && isShortStayCase(stayLength, budget)) {
@@ -144,7 +138,7 @@ export default function AgentForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Your name"><TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" /></Field>
             <Field label="Agency" hint="optional"><TextInput value={agency} onChange={(e) => setAgency(e.target.value)} placeholder="Company name" /></Field>
-            <Field label="Phone / WhatsApp"><TextInput value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+66…" /></Field>
+            <Field label="Phone / WhatsApp"><TextInput type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d+\-()\s]/g, ""))} placeholder="+66…" /></Field>
             <Field label="Email" hint="optional"><TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@agency.com" /></Field>
             <Field label="LINE ID" hint="optional"><TextInput value={line} onChange={(e) => setLine(e.target.value)} placeholder="@yourid" /></Field>
           </div>
@@ -169,13 +163,13 @@ export default function AgentForm() {
             />
           </Field>
           <Field label="Target condo / building" hint="optional — the specific unit you want to co-broke on">
-            <TextInput value={targetCondo} onChange={(e) => setTargetCondo(e.target.value)} placeholder="e.g. The Lofts Asoke, Ashton Silom…" />
+            <ComboSelect value={targetCondo} onChange={setTargetCondo} options={projectOptions} placeholder="Search or type a condo name…" />
           </Field>
           <Field label="Bedrooms">
             <ChipSingle options={BEDS} value={beds} onChange={setBeds} />
           </Field>
           <Field label="Preferred areas" hint="select any">
-            <ChipMulti options={AREAS} selected={areas} onToggle={toggleArea} />
+            <LocationMultiSelect selected={areas} onChange={setAreas} />
           </Field>
           <Field label={`Budget${isRent ? " (per month)" : ""}`} hint="optional">
             <PrefixInput

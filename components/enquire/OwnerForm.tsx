@@ -1,7 +1,10 @@
 "use client";
 import { useState } from "react";
-import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard } from "./kit";
+import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard, ComboSelect, useProjectOptions } from "./kit";
 import PhotoUpload, { type UploadedPhoto } from "./PhotoUpload";
+import { ALL_STATIONS, BANGKOK_ZONES } from "@/lib/bangkok-transit";
+
+const ZONE_OPTIONS = Array.from(new Set([...BANGKOK_ZONES, ...ALL_STATIONS])).sort();
 
 const BEDS = [
   { label: "Studio", value: "Studio" },
@@ -38,6 +41,7 @@ export default function OwnerForm() {
   const goal = "full";
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
+  const projectOptions = useProjectOptions();
 
   async function submit() {
     setSubmitting(true);
@@ -107,10 +111,10 @@ export default function OwnerForm() {
             />
           </Field>
           <Field label="Building / project name" hint="optional">
-            <TextInput value={project} onChange={(e) => setProject(e.target.value)} placeholder="e.g. Ashton Asoke" />
+            <ComboSelect value={project} onChange={setProject} options={projectOptions} placeholder="Search or type a condo name…" />
           </Field>
           <Field label="Zone or nearest BTS" hint="optional">
-            <TextInput value={zone} onChange={(e) => setZone(e.target.value)} placeholder="e.g. Asok / Sukhumvit" />
+            <ComboSelect value={zone} onChange={setZone} options={ZONE_OPTIONS} placeholder="Search zone or BTS/MRT station…" />
           </Field>
           <Field label="Property type">
             <Segmented
@@ -189,7 +193,7 @@ export default function OwnerForm() {
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Name"><TextInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" /></Field>
-            <Field label="Phone / WhatsApp"><TextInput value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+66…" /></Field>
+            <Field label="Phone / WhatsApp"><TextInput type="tel" inputMode="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d+\-()\s]/g, ""))} placeholder="+66…" /></Field>
             <Field label="Email" hint="optional"><TextInput type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@email.com" /></Field>
             <Field label="LINE ID" hint="optional"><TextInput value={line} onChange={(e) => setLine(e.target.value)} placeholder="@yourid" /></Field>
           </div>
