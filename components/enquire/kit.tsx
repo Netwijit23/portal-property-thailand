@@ -459,16 +459,16 @@ export function useProjectOptions(): string[] {
   const [projects, setProjects] = useState<string[]>(cachedProjectOptions ?? []);
   useEffect(() => {
     if (cachedProjectOptions) { setProjects(cachedProjectOptions); return; }
-    supabase
-      .from("listings")
-      .select("project")
-      .eq("is_published", true)
-      .not("project", "is", null)
-      .then(({ data }) => {
-        const uniq = Array.from(new Set((data ?? []).map((r) => (r as { project: string }).project).filter(Boolean))).sort();
-        cachedProjectOptions = uniq;
-        setProjects(uniq);
-      });
+    Promise.all([
+      supabase.from("listings").select("project").eq("is_published", true).not("project", "is", null),
+      supabase.from("condo_directory").select("name"),
+    ]).then(([listingsRes, directoryRes]) => {
+      const fromListings = (listingsRes.data ?? []).map((r) => (r as { project: string }).project);
+      const fromDirectory = (directoryRes.data ?? []).map((r) => (r as { name: string }).name);
+      const uniq = Array.from(new Set([...fromListings, ...fromDirectory].filter(Boolean))).sort();
+      cachedProjectOptions = uniq;
+      setProjects(uniq);
+    });
   }, []);
   return projects;
 }
