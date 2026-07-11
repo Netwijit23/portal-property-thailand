@@ -146,18 +146,23 @@ export default function HeroSearch() {
   async function loadBuildings() {
     if (buildingsLoaded.current) return;
     buildingsLoaded.current = true;
-    const { data } = await supabase
-      .from("listings")
-      .select("id, project, zone, bts_mrt, photos, rent_price_1m, sale_price, listing_type")
-      .eq("is_published", true)
-      .in("status", ["available", "reserved", "rented"])
-      .order("created_at", { ascending: false });
-    if (!data) return;
-    const rows = data as LiveListing[];
+    const [{ data }, { data: directoryRows }] = await Promise.all([
+      supabase
+        .from("listings")
+        .select("id, project, zone, bts_mrt, photos, rent_price_1m, sale_price, listing_type")
+        .eq("is_published", true)
+        .in("status", ["available", "reserved", "rented"])
+        .order("created_at", { ascending: false }),
+      supabase.from("condo_directory").select("name"),
+    ]);
+    const rows = (data ?? []) as LiveListing[];
     setAllListings(rows);
-    const unique = Array.from(new Set(
-      rows.map((r) => (r.project ?? "").trim()).filter(Boolean)
-    )).sort((a, b) => a.localeCompare(b));
+    // Live listings + the condo reference directory — so typing a real
+    // Bangkok building surfaces a suggestion even with zero listings there.
+    const fromListings = rows.map((r) => (r.project ?? "").trim());
+    const fromDirectory = (directoryRows ?? []).map((r) => (r as { name: string }).name.trim());
+    const unique = Array.from(new Set([...fromListings, ...fromDirectory].filter(Boolean)))
+      .sort((a, b) => a.localeCompare(b));
     setBuildings(unique);
   }
 
