@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Star, ChevronLeft, ChevronRight, ExternalLink, PenLine } from "lucide-react";
 import Reveal from "./Reveal";
+import AuroraBackground from "./AuroraBackground";
 
 const GOOGLE_REVIEWS_URL =
   "https://www.google.com/search?q=Portal+Property+Thailand+reviews";
@@ -74,8 +75,9 @@ export default function TestimonialsSection() {
   const next = () => setIndex((i) => (i + 1) % REVIEWS.length);
 
   return (
-    <section className="bg-white border-y border-[#E8E4DC] py-20 md:py-24">
-      <div className="max-w-4xl mx-auto px-6 text-center">
+    <section className="relative overflow-hidden bg-white border-y border-[#E8E4DC] py-20 md:py-24">
+      <AuroraBackground tone="light" className="opacity-60" />
+      <div className="relative max-w-4xl mx-auto px-6 text-center">
         <Reveal>
           <div className="flex items-center justify-center gap-4 mb-4">
             <div className="h-px w-8 bg-[#B8935A]" />

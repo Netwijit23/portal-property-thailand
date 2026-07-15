@@ -498,7 +498,7 @@ export default function HeroSearch() {
           {/* Search button */}
           <button
             onClick={handleSearch}
-            className="font-sans text-sm font-medium px-5 py-3 rounded-[10px] bg-[#B8935A] text-white hover:bg-[#a07d4a] transition-colors whitespace-nowrap shrink-0"
+            className="press font-sans text-sm font-medium px-5 py-3 rounded-[10px] bg-[#B8935A] text-white hover:bg-[#a07d4a] transition-colors whitespace-nowrap shrink-0"
           >
             Search
           </button>

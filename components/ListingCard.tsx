@@ -60,7 +60,7 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
 
   return (
     <Link href={`/listings/${listing.id}`} className="group block">
-      <div className="bg-white border border-[#E8E4DC] rounded-xl overflow-hidden transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] flex flex-col">
+      <div className="lift glow-hover bg-white border border-[#E8E4DC] rounded-xl overflow-hidden flex flex-col">
 
         {/* Photo */}
         <div className={`relative photo-grade ${hero ? "h-[380px]" : "h-[260px]"} flex-shrink-0 overflow-hidden`} onContextMenu={(e) => e.preventDefault()}>

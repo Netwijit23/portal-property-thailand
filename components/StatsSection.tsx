@@ -1,5 +1,6 @@
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
+import AuroraBackground from "./AuroraBackground";
 
 const STATS: {
   count: number; prefix?: string; suffix?: string; static?: string;
@@ -24,8 +25,9 @@ const STATS: {
 
 export default function StatsSection() {
   return (
-    <section className="bg-[#0A0A0A] py-20 md:py-24">
-      <div className="max-w-6xl mx-auto px-6 md:px-12">
+    <section className="relative overflow-hidden bg-[#0A0A0A] py-20 md:py-24">
+      <AuroraBackground tone="dark" />
+      <div className="relative max-w-6xl mx-auto px-6 md:px-12">
         <Reveal className="text-center mb-14">
           <div className="flex items-center justify-center gap-4 mb-4">
             <div className="h-px w-8 bg-[#B8935A]" />

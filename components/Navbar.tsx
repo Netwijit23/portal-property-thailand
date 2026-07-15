@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X, Heart } from "lucide-react";
 import { useSaved } from "@/lib/favourites";
+import Magnetic from "@/components/Magnetic";
 import { useLang, type StringKey } from "@/lib/i18n";
 import LangToggle from "@/components/LangToggle";
 
@@ -91,16 +92,18 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
-            <Link
-              href="/enquire/owner"
-              className={`press inline-flex font-sans text-[13px] font-medium px-5 py-2 rounded-full transition-all duration-300 ${
-                transparent
-                  ? "bg-white/15 text-white border border-white/30 backdrop-blur-md hover:bg-white/25"
-                  : "bg-[#B8935A] text-white hover:bg-[#a07d4a]"
-              }`}
-            >
-              {t("listProperty")}
-            </Link>
+            <Magnetic strength={0.4}>
+              <Link
+                href="/enquire/owner"
+                className={`press inline-flex font-sans text-[13px] font-medium px-5 py-2 rounded-full transition-all duration-300 ${
+                  transparent
+                    ? "bg-white/15 text-white border border-white/30 backdrop-blur-md hover:bg-white/25"
+                    : "bg-[#B8935A] text-white hover:bg-[#a07d4a]"
+                }`}
+              >
+                {t("listProperty")}
+              </Link>
+            </Magnetic>
           </div>
 
           {/* Mobile: saved + hamburger */}

@@ -116,3 +116,72 @@
 .press:active {
   transform: scale(0.97);
 }
+
+/* ─── Quiet-futurism system ──────────────────────────────────────────────── */
+
+/* Spring-ish easing shared across interactions */
+:root {
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Aurora: slow drifting mesh-gradient light */
+@keyframes auroraDrift {
+  0%   { transform: translate3d(-6%, -4%, 0) scale(1.05) rotate(0deg); }
+  33%  { transform: translate3d(5%, 3%, 0) scale(1.15) rotate(4deg); }
+  66%  { transform: translate3d(-3%, 6%, 0) scale(1.1) rotate(-3deg); }
+  100% { transform: translate3d(-6%, -4%, 0) scale(1.05) rotate(0deg); }
+}
+.aurora-layer {
+  position: absolute;
+  inset: -25%;
+  pointer-events: none;
+  filter: blur(70px);
+  opacity: 0.55;
+  will-change: transform;
+  animation: auroraDrift 26s ease-in-out infinite;
+}
+.aurora-layer.two { animation-duration: 34s; animation-direction: reverse; opacity: 0.4; }
+
+/* Glassmorphism 2.0 — frosted surface with a faint luminous gold edge */
+.glass {
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 10px 40px rgba(20, 15, 8, 0.08);
+}
+.glass-dark {
+  background: rgba(14, 14, 16, 0.55);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Luminous hover ring for glass cards */
+.glow-hover {
+  transition: transform 0.5s var(--spring), box-shadow 0.5s var(--ease-out), border-color 0.5s var(--ease-out);
+}
+.glow-hover:hover {
+  border-color: rgba(184, 147, 90, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(184, 147, 90, 0.25),
+    0 18px 50px rgba(20, 15, 8, 0.14),
+    0 0 40px rgba(184, 147, 90, 0.12);
+}
+
+/* Spring lift for interactive cards */
+.lift {
+  transition: transform 0.5s var(--spring), box-shadow 0.5s var(--ease-out);
+  will-change: transform;
+}
+.lift:hover {
+  transform: translateY(-6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-layer { animation: none; }
+  .lift, .glow-hover { transition: none; }
+}
