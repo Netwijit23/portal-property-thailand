@@ -10,7 +10,8 @@ const noSave = {
   style: { userSelect: "none" as const, WebkitUserDrag: "none" as unknown as undefined },
 };
 
-export default function PhotoGallery({ photos, title }: { photos: string[]; title: string }) {
+export default function PhotoGallery({ photos, title, heroId }: { photos: string[]; title: string; heroId?: string }) {
+  const heroStyle = heroId ? { viewTransitionName: `listing-photo-${heroId}` } : undefined;
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [cursor, setCursor] = useState({ x: 0, y: 0, show: false });
   const main = photos[0];
@@ -75,7 +76,7 @@ export default function PhotoGallery({ photos, title }: { photos: string[]; titl
         </div>
 
         {photos.length === 1 ? (
-          <div className="relative h-[60vh] cursor-pointer" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()}>
+          <div className="relative h-[60vh] cursor-pointer" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()} style={heroStyle}>
             <PhotoWatermark size="md">
               <Image src={main} alt={title} fill className="object-cover opacity-90" priority sizes="100vw" {...noSave} />
             </PhotoWatermark>
@@ -84,7 +85,7 @@ export default function PhotoGallery({ photos, title }: { photos: string[]; titl
         ) : (
           <div className="grid grid-cols-4 grid-rows-2 h-[60vh] gap-1">
             {/* Main large photo */}
-            <div className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()}>
+            <div className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()} style={heroStyle}>
               <PhotoWatermark size="md">
                 <Image src={main} alt={title} fill className="object-cover hover:scale-105 transition-transform duration-500" priority sizes="50vw" {...noSave} />
               </PhotoWatermark>

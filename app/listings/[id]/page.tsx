@@ -5,6 +5,8 @@ import PhotoGallery from "@/components/PhotoGallery";
 import LeadForm from "@/components/LeadForm";
 import ShareButton from "@/components/ShareButton";
 import NeighbourhoodSection from "@/components/NeighbourhoodSection";
+import CommuteCalculator from "@/components/CommuteCalculator";
+import ViewingNow from "@/components/ViewingNow";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import ListingTracker from "@/components/ListingTracker";
 import { supabase, dbToListing } from "@/lib/supabase";
@@ -275,7 +277,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         bts_station: resolvedListing.bts_station,
       }} />
       <main className="pt-16 bg-[#FAFAF8]">
-        <PhotoGallery photos={photos} title={displayTitle} />
+        <PhotoGallery photos={photos} title={displayTitle} heroId={listing.id} />
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-6 py-12">
@@ -341,6 +343,10 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 </p>
               )}
 
+              <div className="mb-5 mt-1">
+                <ViewingNow listingId={listing.id} />
+              </div>
+
               {listing.listing_type === "both" ? (
                 <div className="flex flex-col gap-1 mb-8">
                   {listing.rent_price && (
@@ -391,6 +397,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   </p>
                 </div>
               )}
+
+              {/* Commute check */}
+              <div className="mt-8">
+                <CommuteCalculator fromStation={resolvedListing.bts_station} />
+              </div>
 
               {/* Neighbourhood */}
               <NeighbourhoodSection

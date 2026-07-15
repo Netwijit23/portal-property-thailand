@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import HeroSearch from "./HeroSearch";
+import CursorGlow from "./CursorGlow";
 import { useLang } from "@/lib/i18n";
 
 const HERO_IMG = "https://images.unsplash.com/photo-1582535200497-8d831d74d18b?w=1920&q=90";
@@ -61,6 +62,9 @@ export default function CinematicHero() {
           background: "linear-gradient(to bottom, transparent 0%, #FAFAF8 100%)"
         }} />
       </div>
+
+      {/* Cursor-follow atmosphere glow (desktop only) */}
+      <CursorGlow />
 
       {/* Hero content — same layout as before; only the heading text fades on
           scroll now, the search module stays fully legible */}

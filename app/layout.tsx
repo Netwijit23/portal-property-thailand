@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
+import { ViewTransitions } from "next-view-transitions";
 import "./globals.css";
 import FloatingContact from "@/components/FloatingContact";
 import { LanguageProvider } from "@/lib/i18n";
@@ -40,14 +41,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
-      <body className="antialiased">
-        <LanguageProvider>
-          {children}
-          <FloatingContact />
-        </LanguageProvider>
-        <Analytics />
-      </body>
-    </html>
+    <ViewTransitions>
+      <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
+        <body className="antialiased">
+          <LanguageProvider>
+            {children}
+            <FloatingContact />
+          </LanguageProvider>
+          <Analytics />
+        </body>
+      </html>
+    </ViewTransitions>
   );
 }

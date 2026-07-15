@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { Link } from "next-view-transitions";
 import Image from "next/image";
 import { Bed, Bath, Maximize2, Building2 } from "lucide-react";
 import type { Listing } from "@/lib/supabase";
@@ -7,6 +7,7 @@ import PhotoWatermark from "@/components/PhotoWatermark";
 import SaveButton from "@/components/SaveButton";
 import { useLang } from "@/lib/i18n";
 import FreshnessBadge from "@/components/FreshnessBadge";
+import Tilt from "@/components/Tilt";
 
 // Warm neutral blur-up shown while photos stream in — matches the site's
 // linen/champagne palette so the load feels intentional rather than jarring.
@@ -60,10 +61,15 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
 
   return (
     <Link href={`/listings/${listing.id}`} className="group block">
-      <div className="lift glow-hover bg-white border border-[#E8E4DC] rounded-xl overflow-hidden flex flex-col">
+      <Tilt className="h-full">
+      <div className="glow-hover bg-white border border-[#E8E4DC] rounded-xl overflow-hidden flex flex-col h-full">
 
         {/* Photo */}
-        <div className={`relative photo-grade ${hero ? "h-[380px]" : "h-[260px]"} flex-shrink-0 overflow-hidden`} onContextMenu={(e) => e.preventDefault()}>
+        <div
+          className={`relative photo-grade ${hero ? "h-[380px]" : "h-[260px]"} flex-shrink-0 overflow-hidden`}
+          onContextMenu={(e) => e.preventDefault()}
+          style={{ viewTransitionName: `listing-photo-${listing.id}` }}
+        >
           <PhotoWatermark>
             <Image
               src={photo}
@@ -180,6 +186,7 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
         </div>
 
       </div>
+      </Tilt>
     </Link>
   );
 }
