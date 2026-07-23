@@ -49,7 +49,7 @@ export default function OrganizationSchema() {
     review: REVIEWS.map((r) => ({
       "@type": "Review",
       author: { "@type": "Person", name: r.name },
-      datePublished: r.date,
+      datePublished: r.isoDate,
       reviewBody: r.text,
       reviewRating: {
         "@type": "Rating",

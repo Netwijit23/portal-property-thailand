@@ -39,10 +39,10 @@ async function getHotListings(): Promise<Listing[]> {
       .eq("is_published", true)
       .order("created_at", { ascending: false })
       .limit(6);
-    if (error || !data?.length) return getMockListings();
+    if (error || !data?.length) return [];
     return (data as DBListing[]).map(dbToListing);
   } catch {
-    return getMockListings();
+    return [];
   }
 }
 
@@ -71,64 +71,12 @@ function computeBadges(listings: Listing[]): HotBadge[] {
   });
 }
 
-function getMockListings(): Listing[] {
-  return [
-    {
-      id: "1", title: "Modern High-Rise Condo with City Views", title_th: null, type: "condo",
-      listing_type: "rent", zone: "Sukhumvit", building_name: "Ashton Asoke", bts_station: "Asoke",
-      floor: 28, bedrooms: 2, bathrooms: 2, size_sqm: 65, sale_price: null, rent_price: 45000,
-      description: null, description_th: null,
-      photos: ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80"],
-      agent_name: "Khun Somchai", agent_phone: "+66 81 234 5678", agent_line: "somchai.property",
-      status: "available", created_at: new Date().toISOString(), featured: true,
-    },
-    {
-      id: "2", title: "Spacious Townhouse in Thonglor", title_th: null, type: "house",
-      listing_type: "sale", zone: "Thonglor", building_name: null, bts_station: "Thonglor",
-      floor: null, bedrooms: 4, bathrooms: 3, size_sqm: 220, sale_price: 18500000, rent_price: null,
-      description: null, description_th: null,
-      photos: ["https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80"],
-      agent_name: "Khun Priya", agent_phone: "+66 82 345 6789", agent_line: "priya.homes",
-      status: "available", created_at: new Date().toISOString(),
-    },
-    {
-      id: "3", title: "Cozy 1-Bedroom near Phrom Phong", title_th: null, type: "condo",
-      listing_type: "rent", zone: "Sukhumvit 39", building_name: "The Lofts Ekkamai",
-      bts_station: "Phrom Phong", floor: 12, bedrooms: 1, bathrooms: 1, size_sqm: 38,
-      sale_price: null, rent_price: 22000, description: null, description_th: null,
-      photos: ["https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&q=80"],
-      agent_name: "Khun Nit", agent_phone: "+66 83 456 7890", agent_line: "nit.bkk",
-      status: "available", created_at: new Date().toISOString(),
-    },
-    {
-      id: "4", title: "Luxury Penthouse on Sathorn", title_th: null, type: "condo",
-      listing_type: "sale", zone: "Sathorn", building_name: "The Ritz-Carlton Residences",
-      bts_station: "Chong Nonsi", floor: 42, bedrooms: 3, bathrooms: 4, size_sqm: 280,
-      sale_price: 95000000, rent_price: null, description: null, description_th: null,
-      photos: ["https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&q=80"],
-      agent_name: "Khun Wanchai", agent_phone: "+66 84 567 8901", agent_line: "wanchai.luxury",
-      status: "available", created_at: new Date().toISOString(), featured: true,
-    },
-    {
-      id: "5", title: "Garden Villa in Ekkamai", title_th: null, type: "house",
-      listing_type: "rent", zone: "Ekkamai", building_name: null, bts_station: "Ekkamai",
-      floor: null, bedrooms: 3, bathrooms: 3, size_sqm: 180, sale_price: null, rent_price: 75000,
-      description: null, description_th: null,
-      photos: ["https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&q=80"],
-      agent_name: "Khun Aom", agent_phone: "+66 85 678 9012", agent_line: "aom.ekkamai",
-      status: "available", created_at: new Date().toISOString(),
-    },
-    {
-      id: "6", title: "Studio Condo near Ari BTS", title_th: null, type: "condo",
-      listing_type: "rent", zone: "Ari", building_name: "Rhythm Rangnam", bts_station: "Ari",
-      floor: 8, bedrooms: 1, bathrooms: 1, size_sqm: 30, sale_price: null, rent_price: 15000,
-      description: null, description_th: null,
-      photos: ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80"],
-      agent_name: "Khun Beam", agent_phone: "+66 86 789 0123", agent_line: "beam.ari",
-      status: "available", created_at: new Date().toISOString(),
-    },
-  ];
-}
+// NOTE: a hardcoded getMockListings() fallback used to live here and was
+// returned whenever the Supabase query errored or came back empty — which
+// meant a transient DB hiccup could show real visitors a fake agent name
+// and phone number. Removed in favour of an honest empty state (see
+// HotListingsSection gating below); if you want local dev fixtures back,
+// pull them from git history rather than reintroducing a prod fallback.
 
 export default async function HomePage() {
   const listings = await getHotListings();
@@ -143,7 +91,10 @@ export default async function HomePage() {
         <CinematicHero />
 
         {/* ─── HOT LISTINGS ─────────────────────────────────────── */}
-        <HotListingsSection listings={listings} badges={badges} />
+        {/* Only render when we actually have live listings — an empty
+            Supabase result (error or genuinely zero rows) now just skips
+            this section instead of falling back to fake data. */}
+        {listings.length > 0 && <HotListingsSection listings={listings} badges={badges} />}
 
         {/* ─── RECENTLY VIEWED (renders only when the visitor has
              browsing history — reads pp_recently_viewed locally) ── */}

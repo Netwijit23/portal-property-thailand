@@ -95,11 +95,11 @@ export default function Footer() {
                 <FooterLink href="/enquire/agent">Agent Co-broke</FooterLink>
               </div>
               <div className="flex flex-col gap-2.5 mt-6">
-                <a href="tel:+66650595097" className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680] hover:text-[#B8935A] transition-colors">
-                  <Phone size={12} /> +66 65 059 5097
+                <a href={`tel:${BUSINESS.phoneE164}`} className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680] hover:text-[#B8935A] transition-colors">
+                  <Phone size={12} /> {BUSINESS.phoneDisplay}
                 </a>
-                <a href="mailto:Portalproperty.th@gmail.com" className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680] hover:text-[#B8935A] transition-colors">
-                  <Mail size={12} /> Portalproperty.th@gmail.com
+                <a href={`mailto:${BUSINESS.email}`} className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680] hover:text-[#B8935A] transition-colors">
+                  <Mail size={12} /> {BUSINESS.email}
                 </a>
                 <p className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680]">
                   <MapPin size={12} /> Bangkok, Thailand
@@ -118,7 +118,7 @@ export default function Footer() {
 
           <div className="border-t border-[#1A1917] pt-5 flex flex-col md:flex-row justify-between items-center gap-2">
             <p className="font-sans text-[10px] text-[#3A3830]">
-              © 2026 Portal Property Thailand. All rights reserved.
+              © {new Date().getFullYear()} Portal Property Thailand. All rights reserved.
             </p>
             <p className="font-sans text-[10px] text-[#3A3830]">Mon–Sat · 9 am – 7 pm · Bangkok</p>
           </div>

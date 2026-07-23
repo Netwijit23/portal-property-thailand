@@ -3,11 +3,14 @@ import { useState } from "react";
 import { X, MessageCircle, Phone } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { trackContactClick } from "@/lib/analytics";
+import { BUSINESS } from "@/lib/business";
 
-const WHATSAPP_URL =
-  "https://wa.me/66650595097?text=Hi%20Portal%20Property%2C%20I%27d%20like%20to%20enquire%20about%20a%20property";
-const LINE_URL = "https://line.me/R/ti/p/@portalproperty";
-const PHONE = "+66650595097";
+// Sourced from lib/business.ts (the NAP single source of truth) instead of
+// being redeclared here, so these can't silently drift from the footer/
+// JSON-LD if the number or links ever change.
+const WHATSAPP_URL = BUSINESS.whatsapp;
+const LINE_URL = BUSINESS.line;
+const PHONE = BUSINESS.phoneE164;
 
 export default function FloatingContact() {
   const [open, setOpen] = useState(false);

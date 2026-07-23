@@ -164,6 +164,45 @@ export const BLOG_POSTS: BlogPost[] = [
     ],
     related: ["thonglor-vs-ekkamai-for-expats", "how-much-does-it-cost-to-rent-a-condo-in-bangkok-2026"],
   },
+  {
+    slug: "thailand-foreign-condo-ownership-rules-2026-changes",
+    title: "Is Thailand Really Tightening Foreign Condo Ownership Rules? Here's What's Actually True in 2026",
+    excerpt:
+      "You've probably seen a headline about this. Before you panic or rush a decision — here's what's actually being discussed, what's confirmed, and what it would (and wouldn't) change for a purchase you're weighing right now.",
+    publishDate: "2026-07-23",
+    author: "Portal Property Team",
+    sections: [
+      {
+        heading: "First, the part that calms most people down",
+        paragraphs: [
+          "We've had a few clients this year come to us worried they've somehow missed a deadline after reading a headline about Thailand 'cracking down' on foreign condo ownership. So let's start with the boring but important fact: nothing has passed. As of mid-2026, the 49% foreign-ownership quota is exactly what it's been for years — the same rule we [walked through in detail here](/faq).",
+          "What is true is that in early 2026, Thai regulators were reportedly handed formal recommendations to revisit the Condominium Act. That's a real thing happening. It is not the same as a new law existing. If you're mid-search right now, you haven't missed anything, and there's nothing on the books today that changes how a purchase works.",
+        ],
+      },
+      {
+        heading: "What's actually on the table",
+        paragraphs: [
+          "From what's circulating, there are a few different directions this could go, and they're not all equally likely. The one most people close to this expect: tighter enforcement against nominee-ownership setups (i.e. going after the workaround, not the rule itself) with the 49% cap left untouched. Less likely, but discussed: dropping the quota down into the 30–39% range, which developers have reportedly pushed back on hard. There's also talk of different limits by province — stricter in places like Phuket or Pattaya than in Bangkok — and a version where nothing about ownership percentages changes at all, but transfer fees and stamp duty go up instead.",
+          "We're not going to pretend we know which of these wins out, because nobody outside the room does yet. What we can tell you is that even the more aggressive estimates put any actual law somewhere around late 2026 into 2027, and that's assuming something gets adopted at all.",
+        ],
+      },
+      {
+        heading: "What wouldn't change, even in the worst case",
+        paragraphs: [
+          "Every version of this discussion we've seen applies to new purchases going forward, not retroactively. If you buy today under the current rules, or you already own, that's not expected to get unwound by whatever happens next. That's worth repeating to yourself if this story is making you anxious: existing ownership is the one thing that isn't on the table.",
+          "One more thing worth clearing up while we're here, because we get this question constantly: an LTR (Long-Term Resident) visa does not give you a bigger ownership quota. It's a great visa for the right person — 10 years, tax perks, less paperwork — but it doesn't touch the 49% rule. Anyone telling you an LTR visa 'gets around' the quota is wrong.",
+        ],
+      },
+      {
+        heading: "So what should you actually do with this information?",
+        paragraphs: [
+          "Honestly — the same thing we'd tell you regardless of any of this. Check foreign-quota availability on the specific building before you fall in love with a unit, because popular buildings along the BTS corridor often run tight on quota for reasons that have nothing to do with national policy. That's step one on every [condo we list for sale](/listings?type=sale), quota discussion or not.",
+          "If you want to talk through timing — whether it makes sense to move now versus wait and see what happens — [get in touch](/enquire/client) and we'll walk you through where things actually stand on a building you're considering, rather than the market in the abstract. And if a real law does get passed, we'll update this page rather than let it go stale.",
+        ],
+      },
+    ],
+    related: ["can-foreigners-buy-condos-in-bangkok", "how-much-does-it-cost-to-rent-a-condo-in-bangkok-2026"],
+  },
 ];
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
