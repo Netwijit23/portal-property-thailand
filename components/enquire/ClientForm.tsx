@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt, timelineToDate, LocationMultiSelect } from "./kit";
+import { trackFormStart } from "@/lib/analytics";
 
 const BEDS = [
   { label: "Studio", value: "Studio" },
@@ -63,6 +64,7 @@ export default function ClientForm() {
     setSubmitError("");
     const ok = await submitEnquiry({
       kind: "CLIENT ENQUIRY (Renter / Buyer)",
+      formKey: "client",
       name, phone, line, email,
       summaryTitle: `${isRent ? "Rental" : "Purchase"} enquiry — ${name}`,
       notesLines: [
@@ -124,7 +126,7 @@ export default function ClientForm() {
           title="What are you looking for?"
           subtitle="Tell us the essentials so we can match the right homes."
           canNext={true}
-          onNext={() => setStep(2)}
+          onNext={() => { trackFormStart("client"); setStep(2); }}
           nextLabel="Continue"
         >
           <Field label="I'm looking to">

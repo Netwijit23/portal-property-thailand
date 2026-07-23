@@ -5,6 +5,8 @@ import { ViewTransitions } from "next-view-transitions";
 import "./globals.css";
 import FloatingContact from "@/components/FloatingContact";
 import { LanguageProvider } from "@/lib/i18n";
+import OrganizationSchema from "@/components/OrganizationSchema";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 // Self-hosted via next/font — no render-blocking Google Fonts request
 const cormorant = Cormorant_Garamond({
@@ -33,6 +35,12 @@ export const metadata: Metadata = {
     siteName: "Portal Property Thailand",
     type: "website",
   },
+  // Set NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION (Vercel env / .env.local) with
+  // the meta-tag verification code from Google Search Console — renders
+  // <meta name="google-site-verification" content="..."> automatically.
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }
+    : {}),
 };
 
 export default function RootLayout({
@@ -44,11 +52,13 @@ export default function RootLayout({
     <ViewTransitions>
       <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
         <body className="antialiased">
+          <OrganizationSchema />
           <LanguageProvider>
             {children}
             <FloatingContact />
           </LanguageProvider>
           <Analytics />
+          <GoogleAnalytics />
         </body>
       </html>
     </ViewTransitions>

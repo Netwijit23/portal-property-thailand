@@ -570,9 +570,11 @@ export function timelineToDate(timeline: string): string | null {
 
 // ─── Submit helper: writes to leads + fires email notification ───────────────
 import { supabase } from "@/lib/supabase";
+import { trackFormComplete } from "@/lib/analytics";
 
 export async function submitEnquiry({
   kind,
+  formKey,
   name,
   phone,
   line,
@@ -593,6 +595,8 @@ export async function submitEnquiry({
   occupation,
 }: {
   kind: string;
+  /** Short slug used to tag the `form_complete` analytics event, e.g. "client", "agent", "owner". */
+  formKey: string;
   name: string;
   phone: string;
   line?: string;
@@ -655,5 +659,6 @@ export async function submitEnquiry({
     }),
   }).catch(() => {});
 
+  if (!error) trackFormComplete(formKey);
   return !error;
 }

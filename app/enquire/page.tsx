@@ -3,11 +3,13 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Home, Handshake, KeyRound, ArrowRight } from "lucide-react";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Enquire | Portal Property Thailand",
-  description: "Tell us what you're looking for — whether you're renting, buying, co-broking, or listing your property.",
-};
+export const metadata: Metadata = buildMetadata({
+  title: "Enquire — Find a Home, Co-broke, or List a Property | Portal Property",
+  description: "Tell us what you're looking for — whether you're renting, buying, co-broking, or listing your property in Bangkok. Book a viewing today.",
+  path: "/enquire",
+});
 
 const CARDS = [
   {

@@ -4,12 +4,14 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ArrowRight, MapPin } from "lucide-react";
 import { AREA_GUIDES } from "@/lib/areas";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildMetadata({
   title: "Bangkok Neighbourhood Guides | Portal Property Thailand",
   description:
     "Where should you live in Bangkok? Explore our guides to Sukhumvit, Thonglor, Sathorn, Ari, and more — transit, lifestyle, and current listings for each area.",
-};
+  path: "/areas",
+});
 
 export default function AreasIndexPage() {
   return (

@@ -3,12 +3,14 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Reveal from "@/components/Reveal";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "About | Portal Property Thailand",
+export const metadata: Metadata = buildMetadata({
+  title: "About Portal Property Thailand — Bangkok Real Estate Agency",
   description:
     "Portal Property Thailand is a boutique Bangkok real estate agency specialising in condos, houses and apartments for expats and international buyers.",
-};
+  path: "/about",
+});
 
 const VALUES = [
   {

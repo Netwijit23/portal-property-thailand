@@ -7,6 +7,9 @@ import ShareButton from "@/components/ShareButton";
 import NeighbourhoodSection from "@/components/NeighbourhoodSection";
 import CommuteCalculator from "@/components/CommuteCalculator";
 import ViewingNow from "@/components/ViewingNow";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import ListingSchema from "@/components/ListingSchema";
+import { buildMetadata, truncateDescription } from "@/lib/seo";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import ListingTracker from "@/components/ListingTracker";
 import { supabase, dbToListing } from "@/lib/supabase";
@@ -160,6 +163,13 @@ async function getDescription(listing: Listing): Promise<string | null> {
   }
 }
 
+// The zone column holds district-cluster strings ("Sathon, Narathiwat, Chong
+// Nonsi, …"); titles and alt text want just the single headline area.
+function headlineArea(listing: Listing): string {
+  const firstZone = listing.zone?.split(",")[0]?.trim();
+  return firstZone || listing.bts_station || "Bangkok";
+}
+
 function formatPrice(listing: Listing) {
   if (listing.listing_type === "rent" && listing.rent_price) return `฿${listing.rent_price.toLocaleString()} / month`;
   if (listing.listing_type === "sale" && listing.sale_price) return `฿${listing.sale_price.toLocaleString()}`;
@@ -184,33 +194,20 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const displayTitle = listing.type === "condo" && listing.building_name
     ? listing.building_name
     : listing.title;
+  const area = headlineArea(listing);
+  const bedroomsLabel = listing.bedrooms === 0 ? "Studio" : `${listing.bedrooms} Bed`;
+  const propertyType = listing.type === "condo" ? "Condo" : "House";
+  const rentSale = listing.listing_type === "both" ? "Rent or Sale" : listing.listing_type === "rent" ? "Rent" : "Sale";
+
+  const title = `${displayTitle}, ${area} — ${bedroomsLabel} ${propertyType} for ${rentSale} | Portal Property`;
   const price = formatPrice(listing);
-  const title = `${displayTitle} — ${price}`;
-  const bedrooms = listing.bedrooms ? `${listing.bedrooms}-bedroom` : "Studio";
-  const description = (
+  const description = truncateDescription(
     listing.description ||
-    `${bedrooms} ${listing.type} for ${listing.listing_type === "both" ? "rent or sale" : listing.listing_type}${listing.zone ? ` in ${listing.zone}` : " in Bangkok"}${listing.bts_station ? `, near BTS ${listing.bts_station}` : ""}. ${listing.size_sqm} sqm. ${price}.`
-  ).slice(0, 300);
+    `${bedroomsLabel} ${listing.type} for ${listing.listing_type === "both" ? "rent or sale" : listing.listing_type} in ${area}${listing.bts_station ? `, near BTS ${listing.bts_station}` : ""}. ${listing.size_sqm} sqm, ${price}. Book a viewing today.`
+  );
   const image = listing.photos?.[0];
 
-  return {
-    title: `${title} | Portal Property Thailand`,
-    description,
-    alternates: { canonical: `/listings/${listing.id}` },
-    openGraph: {
-      title,
-      description,
-      url: `/listings/${listing.id}`,
-      siteName: "Portal Property Thailand",
-      type: "website",
-      ...(image ? { images: [{ url: image }] } : {}),
-    },
-    twitter: {
-      card: image ? "summary_large_image" : "summary",
-      title,
-      description,
-    },
-  };
+  return buildMetadata({ title, description, path: `/listings/${listing.id}`, image });
 }
 
 export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -235,35 +232,17 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
     ? listing.title
     : null;
 
+  const area = headlineArea(resolvedListing);
+  const bedroomsLabel = listing.bedrooms === 0 ? "Studio" : `${listing.bedrooms} bed`;
+  const propertyType = listing.type === "condo" ? "condo" : "house";
+  const altContext = `${bedroomsLabel} ${propertyType} in ${area}, Bangkok`;
+
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const listingUrl = `${siteUrl}/listings/${listing.id}`;
 
-  // Structured data for search engines
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "RealEstateListing",
-    name: displayTitle,
-    url: listingUrl,
-    ...(photos.length ? { image: photos } : {}),
-    ...(description ? { description } : {}),
-    offers: {
-      "@type": "Offer",
-      priceCurrency: "THB",
-      ...(listing.rent_price || listing.sale_price
-        ? { price: listing.rent_price ?? listing.sale_price }
-        : {}),
-      availability: listing.status === "available"
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-    },
-  };
-
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <ListingSchema listing={listing} url={listingUrl} />
       <Navbar />
       <Suspense fallback={null}>
         <AdminEditButton listingId={listing.id} />
@@ -277,10 +256,16 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         bts_station: resolvedListing.bts_station,
       }} />
       <main className="pt-16 bg-[#FAFAF8]">
-        <PhotoGallery photos={photos} title={displayTitle} heroId={listing.id} />
+        <PhotoGallery photos={photos} title={displayTitle} heroId={listing.id} altContext={altContext} />
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-6 py-12">
+          <Breadcrumbs
+            items={[
+              { label: "Listings", href: "/listings" },
+              { label: displayTitle, href: `/listings/${listing.id}` },
+            ]}
+          />
           <div className="flex flex-col lg:flex-row gap-12">
             {/* Main */}
             <div className="flex-1">

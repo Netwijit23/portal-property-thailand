@@ -55,7 +55,7 @@ export default function SavedPage() {
                 >
                   <div className="relative photo-grade h-[240px] overflow-hidden bg-[#F5F2EC]">
                     {item.photo && (
-                      <Image src={item.photo} alt={item.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width:768px) 100vw, 33vw" draggable={false} />
+                      <Image src={item.photo} alt={`${item.title}${item.bts_station ? `, near BTS ${item.bts_station}` : ""}, Bangkok`} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width:768px) 100vw, 33vw" draggable={false} />
                     )}
                     <div className="absolute top-3 right-3 z-10">
                       <SaveButton listing={item} />

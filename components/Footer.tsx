@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Star, MapPin, Phone, Mail, ArrowUpRight } from "lucide-react";
+import { BUSINESS } from "@/lib/business";
 
 const AREAS = ["Sukhumvit", "Sathorn", "Silom", "Rama 9", "On Nut", "Thonglor"];
-const GOOGLE_REVIEWS_URL = "https://www.google.com/search?q=Portal+Property+Thailand+reviews";
+const GOOGLE_REVIEWS_URL = BUSINESS.googleReviewsUrl;
 
 export default function Footer() {
   return (
@@ -88,6 +89,8 @@ export default function Footer() {
               <p className="font-sans text-[10px] uppercase tracking-[2px] text-[#6B6963] mb-5">Company</p>
               <div className="flex flex-col gap-3">
                 <FooterLink href="/about">About</FooterLink>
+                <FooterLink href="/insights">Insights</FooterLink>
+                <FooterLink href="/faq">FAQ</FooterLink>
                 <FooterLink href="/enquire/owner">List a Property</FooterLink>
                 <FooterLink href="/enquire/agent">Agent Co-broke</FooterLink>
               </div>
@@ -101,6 +104,14 @@ export default function Footer() {
                 <p className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680]">
                   <MapPin size={12} /> Bangkok, Thailand
                 </p>
+                <a
+                  href={BUSINESS.googleBusinessProfile}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 font-sans text-[12px] text-[#8A8680] hover:text-[#B8935A] transition-colors"
+                >
+                  <MapPin size={12} /> Find us on Google
+                </a>
               </div>
             </div>
           </div>

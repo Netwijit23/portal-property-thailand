@@ -10,6 +10,8 @@ const STRINGS = {
   navBuy: ["Buy", "ซื้อ"],
   navRent: ["Rent", "เช่า"],
   navAreas: ["Areas", "ทำเล"],
+  navInsights: ["Insights", "บทความ"],
+  navFaq: ["FAQ", "คำถามที่พบบ่อย"],
   navEnquire: ["Enquire", "สอบถาม"],
   navAbout: ["About", "เกี่ยวกับเรา"],
   listProperty: ["List a Property", "ลงประกาศขาย/เช่า"],

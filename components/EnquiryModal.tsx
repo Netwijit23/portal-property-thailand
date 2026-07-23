@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { trackFormStart, trackFormComplete, trackContactClick } from "@/lib/analytics";
 
 type Props = {
   listing: { id: string; title: string; price: string };
@@ -24,6 +25,10 @@ export default function EnquiryModal({ listing, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    trackFormStart("hot_listing_enquiry");
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,7 +65,10 @@ export default function EnquiryModal({ listing, onClose }: Props) {
     }).catch(() => {});
     setLoading(false);
     if (dbError) setError("Something went wrong. Please try again or contact us on LINE or WhatsApp.");
-    else setSuccess(true);
+    else {
+      trackFormComplete("hot_listing_enquiry");
+      setSuccess(true);
+    }
   }
 
   return (
@@ -227,6 +235,7 @@ export default function EnquiryModal({ listing, onClose }: Props) {
                     href="https://wa.me/66650595097"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackContactClick("whatsapp", "enquiry_modal")}
                     className="font-sans text-[12px] font-medium px-5 py-2 rounded-full bg-[#25D366] text-white"
                   >
                     WhatsApp
@@ -235,6 +244,7 @@ export default function EnquiryModal({ listing, onClose }: Props) {
                     href="https://line.me/R/ti/p/@portalproperty"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackContactClick("line", "enquiry_modal")}
                     className="font-sans text-[12px] font-medium px-5 py-2 rounded-full bg-[#00B900] text-white"
                   >
                     LINE: @portalproperty

@@ -10,8 +10,10 @@ const noSave = {
   style: { userSelect: "none" as const, WebkitUserDrag: "none" as unknown as undefined },
 };
 
-export default function PhotoGallery({ photos, title, heroId }: { photos: string[]; title: string; heroId?: string }) {
+export default function PhotoGallery({ photos, title, heroId, altContext }: { photos: string[]; title: string; heroId?: string; altContext?: string }) {
   const heroStyle = heroId ? { viewTransitionName: `listing-photo-${heroId}` } : undefined;
+  // Full descriptive alt e.g. "MUNIQ Sukhumvit 23, 2 bed condo in Sukhumvit, Bangkok"
+  const baseAlt = altContext ? `${title}, ${altContext}` : title;
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [cursor, setCursor] = useState({ x: 0, y: 0, show: false });
   const main = photos[0];
@@ -60,7 +62,7 @@ export default function PhotoGallery({ photos, title, heroId }: { photos: string
     <>
       {/* ── Mobile: full-bleed swipeable carousel ── */}
       <div className="md:hidden relative bg-[#0A0A0A]">
-        <MobileCarousel photos={photos} title={title} onOpen={setLightboxIndex} />
+        <MobileCarousel photos={photos} title={baseAlt} onOpen={setLightboxIndex} />
       </div>
 
       {/* ── Desktop: gallery grid ── */}
@@ -78,7 +80,7 @@ export default function PhotoGallery({ photos, title, heroId }: { photos: string
         {photos.length === 1 ? (
           <div className="relative h-[60vh] cursor-pointer" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()} style={heroStyle}>
             <PhotoWatermark size="md">
-              <Image src={main} alt={title} fill className="object-cover opacity-90" priority sizes="100vw" {...noSave} />
+              <Image src={main} alt={baseAlt} fill className="object-cover opacity-90" priority sizes="100vw" {...noSave} />
             </PhotoWatermark>
             <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/40 to-transparent pointer-events-none" />
           </div>
@@ -87,13 +89,13 @@ export default function PhotoGallery({ photos, title, heroId }: { photos: string
             {/* Main large photo */}
             <div className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()} style={heroStyle}>
               <PhotoWatermark size="md">
-                <Image src={main} alt={title} fill className="object-cover hover:scale-105 transition-transform duration-500" priority sizes="50vw" {...noSave} />
+                <Image src={main} alt={baseAlt} fill className="object-cover hover:scale-105 transition-transform duration-500" priority sizes="50vw" {...noSave} />
               </PhotoWatermark>
             </div>
             {/* 4 smaller previews */}
             {previews.map((photo, i) => (
               <div key={i} className="relative cursor-pointer overflow-hidden" onClick={() => setLightboxIndex(i + 1)} onContextMenu={(e) => e.preventDefault()}>
-                <Image src={photo} alt="" fill className="object-cover hover:scale-105 transition-transform duration-500" sizes="25vw" {...noSave} />
+                <Image src={photo} alt={`${baseAlt} — photo ${i + 2}`} fill className="object-cover hover:scale-105 transition-transform duration-500" sizes="25vw" {...noSave} />
                 {/* "Show all" overlay on last thumbnail */}
                 {i === 3 && hasMore && (
                   <div
@@ -155,7 +157,7 @@ export default function PhotoGallery({ photos, title, heroId }: { photos: string
             <PhotoWatermark size="md">
               <Image
                 src={photos[lightboxIndex]}
-                alt={`${title} — photo ${lightboxIndex + 1}`}
+                alt={`${baseAlt} — photo ${lightboxIndex + 1}`}
                 fill
                 className="object-contain"
                 sizes="100vw"
@@ -184,7 +186,7 @@ export default function PhotoGallery({ photos, title, heroId }: { photos: string
                   i === lightboxIndex ? "border-[#B8935A]" : "border-transparent opacity-60 hover:opacity-100"
                 }`}
               >
-                <Image src={p} alt="" fill className="object-cover" sizes="56px" {...noSave} />
+                <Image src={p} alt={`${baseAlt} — thumbnail ${i + 1}`} fill className="object-cover" sizes="56px" {...noSave} />
               </div>
             ))}
           </div>

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { X, MessageCircle, Phone } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { trackContactClick } from "@/lib/analytics";
 
 const WHATSAPP_URL =
   "https://wa.me/66650595097?text=Hi%20Portal%20Property%2C%20I%27d%20like%20to%20enquire%20about%20a%20property";
@@ -39,6 +40,7 @@ export default function FloatingContact() {
               href={WHATSAPP_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackContactClick("whatsapp", "floating_contact")}
               className="flex items-center gap-2.5 font-sans text-[13px] font-medium px-4 py-2.5 rounded-xl bg-[#25D366] text-white hover:opacity-90 transition-opacity"
             >
               {/* WhatsApp icon */}
@@ -52,6 +54,7 @@ export default function FloatingContact() {
               href={LINE_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackContactClick("line", "floating_contact")}
               className="flex items-center gap-2.5 font-sans text-[13px] font-medium px-4 py-2.5 rounded-xl bg-[#00B900] text-white hover:opacity-90 transition-opacity"
             >
               {/* LINE icon */}
@@ -63,6 +66,7 @@ export default function FloatingContact() {
 
             <a
               href={`tel:${PHONE}`}
+              onClick={() => trackContactClick("phone", "floating_contact")}
               className="press flex items-center gap-2.5 font-sans text-[13px] font-medium px-4 py-2.5 rounded-xl bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors"
             >
               <Phone size={16} />

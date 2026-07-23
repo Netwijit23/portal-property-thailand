@@ -49,7 +49,7 @@ export default function RecentlyViewed({ currentId }: { currentId?: string }) {
               {item.photo ? (
                 <Image
                   src={item.photo}
-                  alt={item.title}
+                  alt={`${item.title}${item.bts_station ? `, near BTS ${item.bts_station}` : ""}, Bangkok`}
                   fill
                   className="object-cover"
                   sizes="200px"

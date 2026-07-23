@@ -6,6 +6,7 @@ import type { Listing } from "@/lib/supabase";
 import PhotoWatermark from "@/components/PhotoWatermark";
 import SaveButton from "@/components/SaveButton";
 import FreshnessBadge from "@/components/FreshnessBadge";
+import { listingPhotoAlt } from "@/lib/altText";
 
 export type HotBadge = "Hot" | "New" | "Reduced";
 
@@ -56,7 +57,7 @@ export default function HotListingCard(props: Props) {
         <PhotoWatermark>
           <Image
             src={photo}
-            alt={listing.title}
+            alt={listingPhotoAlt(listing)}
             fill
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
             sizes="300px"

@@ -1,29 +1,51 @@
 import Reveal from "./Reveal";
 import CountUp from "./CountUp";
 import AuroraBackground from "./AuroraBackground";
+import { supabase } from "@/lib/supabase";
+import { BUSINESS } from "@/lib/business";
 
-const STATS: {
-  count: number; prefix?: string; suffix?: string; static?: string;
-  title: string; caption: string;
-}[] = [
-  {
-    count: 500, suffix: "+",
-    title: "Curated Properties",
-    caption: "Hand-picked condos, houses and villas across Bangkok's finest addresses",
-  },
-  {
-    count: 2, suffix: " min",
-    title: "BTS-Connected Living",
-    caption: "Every listing mapped to its nearest station, from Ari to On Nut",
-  },
-  {
-    count: 20, suffix: "+",
-    title: "Nationalities Served",
-    caption: "Trusted by expats and international investors relocating to Thailand",
-  },
-];
+// Parses "500+" / "20+" style config strings into a CountUp-friendly
+// { count, suffix } pair so the animated numbers stay driven by lib/business.ts
+// instead of being hardcoded here.
+function parseStat(value: string): { count: number; suffix: string; prefix?: string } {
+  const match = value.match(/^(\d+)(.*)$/);
+  if (!match) return { count: 0, suffix: "" };
+  return { count: parseInt(match[1], 10), suffix: match[2] };
+}
 
-export default function StatsSection() {
+async function getPublishedListingsCount(): Promise<number | null> {
+  const { count, error } = await supabase
+    .from("listings")
+    .select("id", { count: "exact", head: true })
+    .eq("is_published", true);
+  if (error) return null;
+  return count;
+}
+
+export default async function StatsSection() {
+  const liveCount = await getPublishedListingsCount();
+  const propertiesStat = liveCount && liveCount > 0
+    ? { count: liveCount, suffix: "+" }
+    : parseStat(BUSINESS.stats.propertiesListed);
+
+  const STATS = [
+    {
+      ...propertiesStat,
+      title: "Curated Properties",
+      caption: "Hand-picked condos, houses and villas across Bangkok's finest addresses",
+    },
+    {
+      count: 2, suffix: " min",
+      title: "BTS-Connected Living",
+      caption: "Every listing mapped to its nearest station, from Ari to On Nut",
+    },
+    {
+      ...parseStat(BUSINESS.stats.nationalitiesServed),
+      title: "Nationalities Served",
+      caption: "Trusted by expats and international investors relocating to Thailand",
+    },
+  ];
+
   return (
     <section className="relative overflow-hidden bg-[#0A0A0A] py-20 md:py-24">
       <AuroraBackground tone="dark" />

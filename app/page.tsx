@@ -1,7 +1,9 @@
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
+import type { Metadata } from "next";
 import { unstable_noStore as noStore } from "next/cache";
+import { buildMetadata } from "@/lib/seo";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -14,10 +16,18 @@ import BTSMap from "@/components/BTSMap";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import StatsSection from "@/components/StatsSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
+import RentVsBuyCalculator from "@/components/RentVsBuyCalculator";
 import FloatingContact from "@/components/FloatingContact";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
 import type { HotBadge } from "@/components/HotListingCard";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Portal Property Thailand — Bangkok Condos & Houses for Rent and Sale",
+  description:
+    "Find condos and houses for rent and sale along Bangkok's BTS Skytrain corridor — Sukhumvit, Thonglor, Silom and more. Book a viewing today.",
+  path: "/",
+});
 
 async function getHotListings(): Promise<Listing[]> {
   noStore();
@@ -146,6 +156,9 @@ export default async function HomePage() {
 
         {/* ─── CLIENT REVIEWS ───────────────────────────────────── */}
         <TestimonialsSection />
+
+        {/* ─── RENT VS BUY CALCULATOR ───────────────────────────── */}
+        <RentVsBuyCalculator />
 
         {/* ─── BTS ZONE GUIDE ───────────────────────────────────── */}
         <BTSMap />

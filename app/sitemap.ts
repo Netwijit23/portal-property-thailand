@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { supabase } from "@/lib/supabase";
 import { AREA_GUIDES } from "@/lib/areas";
+import { BLOG_POSTS } from "@/lib/blog";
 
 const BASE = "https://portalpropertythailand.com";
 
@@ -16,12 +17,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/enquire/client`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/enquire/agent`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/enquire/owner`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE}/submit`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${BASE}/areas`, changeFrequency: "weekly", priority: 0.7 },
     ...AREA_GUIDES.map((a) => ({
       url: `${BASE}/areas/${a.slug}`,
       changeFrequency: "weekly" as const,
       priority: 0.7,
+    })),
+    { url: `${BASE}/insights`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${BASE}/faq`, changeFrequency: "monthly", priority: 0.6 },
+    ...BLOG_POSTS.map((post) => ({
+      url: `${BASE}/insights/${post.slug}`,
+      lastModified: new Date(post.publishDate),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
     })),
   ];
 

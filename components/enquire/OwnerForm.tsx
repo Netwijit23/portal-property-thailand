@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard, ComboSelect, useProjectOptions } from "./kit";
 import PhotoUpload, { type UploadedPhoto } from "./PhotoUpload";
 import { ALL_STATIONS, BANGKOK_ZONES } from "@/lib/bangkok-transit";
+import { trackFormStart, trackFormComplete } from "@/lib/analytics";
 
 const ZONE_OPTIONS = Array.from(new Set([...BANGKOK_ZONES, ...ALL_STATIONS])).sort();
 
@@ -71,6 +72,7 @@ export default function OwnerForm() {
           notes: `Owner submitted a property with ${photos.length} photo(s). A draft listing was created for review.`,
         }),
       }).catch(() => {});
+      trackFormComplete("owner");
       setDone(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong");
@@ -96,7 +98,7 @@ export default function OwnerForm() {
           title="Your property"
           subtitle="A few details about the unit you'd like us to market."
           canNext={true}
-          onNext={() => setStep(2)}
+          onNext={() => { trackFormStart("owner"); setStep(2); }}
           nextLabel="Continue"
         >
           <Field label="I want to">

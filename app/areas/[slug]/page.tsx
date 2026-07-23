@@ -12,6 +12,8 @@ import { ArrowRight, Train, Star, Users } from "lucide-react";
 import { AREA_GUIDES, getAreaGuide } from "@/lib/areas";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { buildMetadata, truncateDescription } from "@/lib/seo";
 
 const HIGHLIGHT_ICONS = [Train, Star, Users];
 
@@ -19,10 +21,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const area = getAreaGuide(slug);
   if (!area) return { title: "Area Not Found | Portal Property Thailand" };
-  return {
-    title: `Living in ${area.name}, Bangkok — Neighbourhood Guide | Portal Property Thailand`,
-    description: `${area.tagline}. ${area.intro[0].slice(0, 150)}…`,
-  };
+
+  const title = `Condos for Rent Near ${area.name} BTS — ${area.name}, Bangkok | Portal Property`;
+  const description = truncateDescription(
+    `${area.tagline}. ${area.intro[0]} Book a viewing today.`
+  );
+
+  return buildMetadata({ title, description, path: `/areas/${area.slug}` });
 }
 
 async function getAreaListings(match: string): Promise<Listing[]> {
@@ -61,7 +66,16 @@ export default async function AreaGuidePage({ params }: { params: Promise<{ slug
       <main className="pt-16 min-h-screen bg-[#FAFAF8]">
         {/* Hero */}
         <section className="bg-[#0A0A0A] text-white">
-          <div className="max-w-5xl mx-auto px-6 py-20 md:py-28">
+          <div className="max-w-5xl mx-auto px-6 pt-6 md:pt-8">
+            <Breadcrumbs
+              items={[
+                { label: "Areas", href: "/areas" },
+                { label: area.name, href: `/areas/${area.slug}` },
+              ]}
+              dark
+            />
+          </div>
+          <div className="max-w-5xl mx-auto px-6 pb-20 md:pb-28 pt-6 md:pt-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-px w-8 bg-[#B8935A]" />
               <span className="font-sans text-[10px] uppercase tracking-[2.5px] text-[#B8935A]">Neighbourhood Guide</span>

@@ -363,7 +363,7 @@ export default function HeroSearch() {
                         >
                           <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F0ECE4] shrink-0">
                             {l.photos?.[0] && (
-                              <Image src={l.photos[0]} alt="" fill className="object-cover" sizes="48px" draggable={false} />
+                              <Image src={l.photos[0]} alt={`${l.project || l.zone || "Property"}, Bangkok`} fill className="object-cover" sizes="48px" draggable={false} />
                             )}
                           </div>
                           <div className="min-w-0 flex-1">

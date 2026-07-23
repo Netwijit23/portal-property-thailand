@@ -8,6 +8,7 @@ import SaveButton from "@/components/SaveButton";
 import { useLang } from "@/lib/i18n";
 import FreshnessBadge from "@/components/FreshnessBadge";
 import Tilt from "@/components/Tilt";
+import { listingPhotoAlt } from "@/lib/altText";
 
 // Warm neutral blur-up shown while photos stream in — matches the site's
 // linen/champagne palette so the load feels intentional rather than jarring.
@@ -73,7 +74,7 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
           <PhotoWatermark>
             <Image
               src={photo}
-              alt={displayName}
+              alt={listingPhotoAlt(listing)}
               fill
               priority={hero}
               placeholder="blur"

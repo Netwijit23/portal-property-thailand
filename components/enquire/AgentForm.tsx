@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt, LocationMultiSelect, ComboSelect, useProjectOptions } from "./kit";
+import { trackFormStart } from "@/lib/analytics";
 
 const BEDS = [
   { label: "Studio", value: "Studio" },
@@ -66,6 +67,7 @@ export default function AgentForm() {
     setSubmitError("");
     const ok = await submitEnquiry({
       kind: "AGENT CO-BROKE REQUEST",
+      formKey: "agent",
       name, phone, line, email,
       summaryTitle: `Co-broke — ${agency || name}`,
       notesLines: [
@@ -132,7 +134,7 @@ export default function AgentForm() {
           title="About you"
           subtitle="Agent-to-agent — we co-broke fairly and transparently."
           canNext={name.trim().length > 0 && phone.trim().length > 0}
-          onNext={() => setStep(2)}
+          onNext={() => { trackFormStart("agent"); setStep(2); }}
           nextLabel="Continue"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

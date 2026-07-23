@@ -1,5 +1,6 @@
 "use client";
 import { useLang } from "@/lib/i18n";
+import { trackContactClick } from "@/lib/analytics";
 
 const LINE_OA_ID = "@portalproperty";
 const WHATSAPP_NUMBER = "66650595097";
@@ -27,6 +28,7 @@ export default function ChatButtons({
         href={lineHref}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackContactClick("line", "listing_chat_buttons")}
         className="press flex-1 flex items-center justify-center gap-2 font-sans text-[13px] font-medium px-4 py-3 rounded-full bg-[#00B900] text-white hover:opacity-90 transition-opacity"
       >
         {/* LINE icon */}
@@ -39,6 +41,7 @@ export default function ChatButtons({
         href={waHref}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackContactClick("whatsapp", "listing_chat_buttons")}
         className="press flex-1 flex items-center justify-center gap-2 font-sans text-[13px] font-medium px-4 py-3 rounded-full bg-[#25D366] text-white hover:opacity-90 transition-opacity"
       >
         {/* WhatsApp icon */}
