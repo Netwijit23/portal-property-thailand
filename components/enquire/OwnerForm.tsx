@@ -4,6 +4,7 @@ import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShe
 import PhotoUpload, { type UploadedPhoto } from "./PhotoUpload";
 import { ALL_STATIONS, BANGKOK_ZONES } from "@/lib/bangkok-transit";
 import { trackFormStart, trackFormComplete } from "@/lib/analytics";
+import { isValidPhone } from "@/lib/formGuards";
 
 const ZONE_OPTIONS = Array.from(new Set([...BANGKOK_ZONES, ...ALL_STATIONS])).sort();
 
@@ -187,7 +188,7 @@ export default function OwnerForm() {
           step={4} total={4}
           title="How can we reach you?"
           subtitle="We'll review your unit and be in touch to confirm details and go live."
-          canNext={name.trim().length > 0 && phone.trim().length > 0}
+          canNext={name.trim().length > 1 && isValidPhone(phone)}
           onBack={() => setStep(3)}
           onNext={submit}
           nextLabel="Submit my property"

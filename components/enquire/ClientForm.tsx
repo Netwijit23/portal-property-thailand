@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt, timelineToDate, LocationMultiSelect } from "./kit";
 import { trackFormStart } from "@/lib/analytics";
+import { isValidPhone } from "@/lib/formGuards";
 
 const BEDS = [
   { label: "Studio", value: "Studio" },
@@ -231,7 +232,7 @@ export default function ClientForm() {
           step={4} total={totalSteps}
           title="How can we reach you?"
           subtitle="We'll send tailored options — no spam, ever."
-          canNext={name.trim().length > 0 && phone.trim().length > 0}
+          canNext={name.trim().length > 1 && isValidPhone(phone)}
           onBack={() => setStep(3)}
           onNext={submit}
           nextLabel="Send my requirements"

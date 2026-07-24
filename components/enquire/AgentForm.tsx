@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Field, TextInput, TextArea, PrefixInput, Segmented, ChipSingle, StepShell, SuccessCard, ShortStayNotice, isShortStayCase, submitEnquiry, bedsToInt, budgetToInt, LocationMultiSelect, ComboSelect, useProjectOptions } from "./kit";
 import { trackFormStart } from "@/lib/analytics";
+import { isValidPhone } from "@/lib/formGuards";
 
 const BEDS = [
   { label: "Studio", value: "Studio" },
@@ -133,7 +134,7 @@ export default function AgentForm() {
           step={1} total={3}
           title="About you"
           subtitle="Agent-to-agent — we co-broke fairly and transparently."
-          canNext={name.trim().length > 0 && phone.trim().length > 0}
+          canNext={name.trim().length > 1 && isValidPhone(phone)}
           onNext={() => { trackFormStart("agent"); setStep(2); }}
           nextLabel="Continue"
         >

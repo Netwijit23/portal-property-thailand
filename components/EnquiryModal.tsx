@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { trackFormStart, trackFormComplete, trackContactClick } from "@/lib/analytics";
+import { isValidPhone, useSpamGuard } from "@/lib/formGuards";
 
 type Props = {
   listing: { id: string; title: string; price: string };
@@ -25,6 +26,7 @@ export default function EnquiryModal({ listing, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const { trapRef, isSpam } = useSpamGuard();
 
   useEffect(() => {
     trackFormStart("hot_listing_enquiry");
@@ -32,6 +34,15 @@ export default function EnquiryModal({ listing, onClose }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
+    if (!isValidPhone(phone)) {
+      setError("Please enter a valid phone number.");
+      return;
+    }
+    if (isSpam()) {
+      setSuccess(true);
+      return;
+    }
     setLoading(true);
     const notesLines = [
       `Source: hot listings enquiry (ID: ${listing.id})`,
@@ -118,6 +129,8 @@ export default function EnquiryModal({ listing, onClose }: Props) {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-4">
+              {/* Honeypot — hidden from users, auto-filled by bots */}
+              <input ref={trapRef} type="text" name="company_website" tabIndex={-1} autoComplete="off" aria-hidden="true" className="absolute left-[-9999px] top-0 h-px w-px opacity-0" />
               <p className="font-sans text-[13px] text-[#8A8680] leading-relaxed">
                 Leave your details and one of our team will contact you within 2 hours during
                 business hours.

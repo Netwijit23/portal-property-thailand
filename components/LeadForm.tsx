@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Check, Phone, MessageCircle } from "lucide-react";
+import { isValidEmail, isValidPhone, useSpamGuard } from "@/lib/formGuards";
 
 const CONTACT_METHODS = ["Phone", "WhatsApp", "LINE"] as const;
 const TIMELINES = ["ASAP", "Within 1 month", "1–3 months", "3+ months"];
@@ -29,11 +30,30 @@ export default function LeadForm({ listingId, listingTitle, listingPrice, isRent
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const { trapRef, isSpam } = useSpamGuard();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    // Validate before doing anything (single-char name / malformed phone/email
+    // previously passed straight through to the DB).
+    if (!isValidPhone(phone)) {
+      setError("Please enter a valid phone number.");
+      return;
+    }
+    if (email && !isValidEmail(email)) {
+      setError("Please enter a valid email address, or leave it blank.");
+      return;
+    }
+    // Silently accept-and-drop obvious bots (honeypot filled or submitted too
+    // fast) so they don't learn they were blocked.
+    if (isSpam()) {
+      setSuccess(true);
+      return;
+    }
+
+    setLoading(true);
 
     const notesLines = [
       `Source: listing detail page (ID: ${listingId})`,
@@ -107,6 +127,16 @@ export default function LeadForm({ listingId, listingTitle, listingPrice, isRent
       </div>
 
       <form onSubmit={handleSubmit}>
+        {/* Honeypot — hidden from users, auto-filled by bots */}
+        <input
+          ref={trapRef}
+          type="text"
+          name="company_website"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          className="absolute left-[-9999px] top-0 h-px w-px opacity-0"
+        />
         {/* Grouped fields — iOS settings style */}
         <div className="mx-6 rounded-xl bg-[#F7F5F1] overflow-hidden">
           <input
