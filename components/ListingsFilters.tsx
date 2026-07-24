@@ -24,7 +24,7 @@ function PriceRange({ current, updateParam }: {
 
   return (
     <div>
-      <label className="font-sans text-xs uppercase tracking-widest text-[#8A8680] mb-3 block">
+      <label className="font-sans text-xs uppercase tracking-widest text-[#6B6863] mb-3 block">
         Price {isRent ? "(per month)" : ""}
       </label>
       <div className="flex items-center gap-2">
@@ -40,7 +40,7 @@ function PriceRange({ current, updateParam }: {
             className={inputCls}
           />
         </div>
-        <span className="font-sans text-xs text-[#8A8680]">–</span>
+        <span className="font-sans text-xs text-[#6B6863]">–</span>
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 font-sans text-sm text-[#B8935A]">฿</span>
           <input
@@ -72,7 +72,7 @@ function FilterContent({ current, updateParam, clearAll }: {
     <div className="flex flex-col gap-6">
       {/* Rent / Sale */}
       <div>
-        <label className="font-sans text-xs uppercase tracking-widest text-[#8A8680] mb-3 block">Listing type</label>
+        <label className="font-sans text-xs uppercase tracking-widest text-[#6B6863] mb-3 block">Listing type</label>
         <div className="flex gap-2">
           {[{ label: "All", value: "" }, { label: "Rent", value: "rent" }, { label: "Sale", value: "sale" }].map((opt) => (
             <button
@@ -81,7 +81,7 @@ function FilterContent({ current, updateParam, clearAll }: {
               className={`flex-1 font-sans text-xs py-2 rounded-full border transition-colors ${
                 current.type === opt.value
                   ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
-                  : "bg-white text-[#8A8680] border-[#E8E4DC] hover:border-[#0A0A0A]"
+                  : "bg-white text-[#6B6863] border-[#E8E4DC] hover:border-[#0A0A0A]"
               }`}
             >
               {opt.label}
@@ -92,7 +92,7 @@ function FilterContent({ current, updateParam, clearAll }: {
 
       {/* Zone */}
       <div>
-        <label className="font-sans text-xs uppercase tracking-widest text-[#8A8680] mb-3 block">Zone</label>
+        <label className="font-sans text-xs uppercase tracking-widest text-[#6B6863] mb-3 block">Zone</label>
         <select
           value={current.zone}
           onChange={(e) => updateParam("zone", e.target.value)}
@@ -105,7 +105,7 @@ function FilterContent({ current, updateParam, clearAll }: {
 
       {/* Property type */}
       <div>
-        <label className="font-sans text-xs uppercase tracking-widest text-[#8A8680] mb-3 block">Property type</label>
+        <label className="font-sans text-xs uppercase tracking-widest text-[#6B6863] mb-3 block">Property type</label>
         <div className="flex gap-2">
           {[{ label: "All", value: "" }, { label: "Condo", value: "condo" }, { label: "House", value: "house" }].map((opt) => (
             <button
@@ -114,7 +114,7 @@ function FilterContent({ current, updateParam, clearAll }: {
               className={`flex-1 font-sans text-xs py-2 rounded-full border transition-colors ${
                 current.propType === opt.value
                   ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
-                  : "bg-white text-[#8A8680] border-[#E8E4DC] hover:border-[#0A0A0A]"
+                  : "bg-white text-[#6B6863] border-[#E8E4DC] hover:border-[#0A0A0A]"
               }`}
             >
               {opt.label}
@@ -128,7 +128,7 @@ function FilterContent({ current, updateParam, clearAll }: {
 
       {/* Bedrooms */}
       <div>
-        <label className="font-sans text-xs uppercase tracking-widest text-[#8A8680] mb-3 block">Min bedrooms</label>
+        <label className="font-sans text-xs uppercase tracking-widest text-[#6B6863] mb-3 block">Min bedrooms</label>
         <div className="flex gap-2 flex-wrap">
           {[{ label: "Any", value: "" }, { label: "1+", value: "1" }, { label: "2+", value: "2" }, { label: "3+", value: "3" }, { label: "4+", value: "4" }].map((opt) => (
             <button
@@ -137,7 +137,7 @@ function FilterContent({ current, updateParam, clearAll }: {
               className={`font-sans text-xs px-3 py-1.5 rounded-full border transition-colors ${
                 current.bedrooms === opt.value
                   ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
-                  : "bg-white text-[#8A8680] border-[#E8E4DC] hover:border-[#0A0A0A]"
+                  : "bg-white text-[#6B6863] border-[#E8E4DC] hover:border-[#0A0A0A]"
               }`}
             >
               {opt.label}
@@ -149,7 +149,7 @@ function FilterContent({ current, updateParam, clearAll }: {
       {hasFilters && (
         <button
           onClick={clearAll}
-          className="font-sans text-xs text-[#8A8680] hover:text-[#B8935A] transition-colors underline underline-offset-4 text-left"
+          className="font-sans text-xs text-[#6B6863] hover:text-[#B8935A] transition-colors underline underline-offset-4 text-left"
         >
           Clear all filters
         </button>
@@ -231,7 +231,7 @@ export default function ListingsFilters() {
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#F0EDE8]">
           <h2 className="font-cormorant text-xl text-[#0A0A0A]">Filters</h2>
-          <button onClick={() => setDrawerOpen(false)} className="text-[#8A8680] hover:text-[#0A0A0A] transition-colors">
+          <button onClick={() => setDrawerOpen(false)} className="text-[#6B6863] hover:text-[#0A0A0A] transition-colors">
             <X size={20} />
           </button>
         </div>

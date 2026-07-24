@@ -23,7 +23,7 @@ export default function SortSelect() {
 
   return (
     <div className="flex items-center gap-2">
-      <ArrowUpDown size={13} className="text-[#8A8680]" />
+      <ArrowUpDown size={13} className="text-[#6B6863]" />
       <select
         value={current}
         onChange={(e) => onChange(e.target.value)}

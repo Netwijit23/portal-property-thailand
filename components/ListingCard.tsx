@@ -152,11 +152,11 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
               {displayPrice}
             </p>
             {secondaryPrice && (
-              <p className="font-sans text-xs text-[#8A8680] mt-0.5">{secondaryPrice}</p>
+              <p className="font-sans text-xs text-[#6B6863] mt-0.5">{secondaryPrice}</p>
             )}
           </div>
 
-          <div className="flex items-center gap-3 text-[#8A8680]">
+          <div className="flex items-center gap-3 text-[#6B6863]">
             <span className="flex items-center gap-1 font-sans text-xs">
               <Bed size={12} /> {listing.bedrooms === 0 ? t("studio") : `${listing.bedrooms}`}
             </span>
@@ -179,7 +179,7 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
         {/* Footer */}
         <div className="px-5 py-3 mt-auto border-t border-[#E8E4DC] flex justify-between items-center">
           {displayZone && (
-            <span className="font-sans text-[10px] tracking-wide text-[#8A8680] truncate mr-3">
+            <span className="font-sans text-[10px] tracking-wide text-[#6B6863] truncate mr-3">
               {displayZone}
             </span>
           )}

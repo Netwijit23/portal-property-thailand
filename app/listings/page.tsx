@@ -306,7 +306,7 @@ function ListingsGrid({
   return (
     <div>
       <div className="flex items-center justify-between mb-6 gap-3">
-        <p className="font-sans text-sm text-[#8A8680]">{total} propert{total === 1 ? "y" : "ies"}</p>
+        <p className="font-sans text-sm text-[#6B6863]">{total} propert{total === 1 ? "y" : "ies"}</p>
         <Suspense fallback={null}>
           <SortSelect />
         </Suspense>
