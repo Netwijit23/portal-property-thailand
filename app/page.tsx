@@ -48,25 +48,15 @@ async function getHotListings(): Promise<Listing[]> {
 function computeBadges(listings: Listing[]): HotBadge[] {
   const now = Date.now();
 
-  // Average price per listing_type
-  const rentPrices = listings.filter((l) => l.listing_type === "rent" && l.rent_price).map((l) => l.rent_price!);
-  const salePrices = listings.filter((l) => l.listing_type === "sale" && l.sale_price).map((l) => l.sale_price!);
-  const rentAvg = rentPrices.length ? rentPrices.reduce((a, b) => a + b, 0) / rentPrices.length : 0;
-  const saleAvg = salePrices.length ? salePrices.reduce((a, b) => a + b, 0) / salePrices.length : 0;
-
+  // Only "New" (genuinely recent) and "Hot" are derivable from data we have.
+  // The old "Reduced" badge compared a listing against the average of a handful
+  // of other recent listings — not an actual price cut — which is misleading
+  // (and a consumer-claims risk). Removed until there's a real prior-price
+  // field to drive it from (see MIGRATION_NOTES.md).
   return listings.map((l): HotBadge => {
     const created = new Date(l.created_at).getTime();
     const daysDiff = (now - created) / (1000 * 60 * 60 * 24);
-    if (daysDiff < 7) return "New";
-
-    if (l.listing_type === "rent" && l.rent_price && rentAvg > 0 && l.rent_price < rentAvg * 0.88) {
-      return "Reduced";
-    }
-    if (l.listing_type === "sale" && l.sale_price && saleAvg > 0 && l.sale_price < saleAvg * 0.88) {
-      return "Reduced";
-    }
-
-    return "Hot";
+    return daysDiff < 7 ? "New" : "Hot";
   });
 }
 
