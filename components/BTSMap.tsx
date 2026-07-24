@@ -374,7 +374,7 @@ export default function BTSMap() {
   const SVG_W = 940;
 
   return (
-    <section id="bts-map" className="bg-white border-t border-[#F0EDE8] py-16 px-4 md:px-10">
+    <section id="bts-map" className="bg-white border-t border-[#F0EDE8] py-12 px-4 md:px-10">
       {/* Header */}
       <div className="max-w-7xl mx-auto text-center mb-10">
         <p className="font-sans text-[10px] uppercase tracking-[2px] text-[#B8935A] mb-3">
