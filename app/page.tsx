@@ -17,7 +17,6 @@ import RecentlyViewed from "@/components/RecentlyViewed";
 import StatsSection from "@/components/StatsSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import RentVsBuyCalculator from "@/components/RentVsBuyCalculator";
-import FloatingContact from "@/components/FloatingContact";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
 import type { HotBadge } from "@/components/HotListingCard";
@@ -114,7 +113,6 @@ export default async function HomePage() {
         {/* ─── BTS ZONE GUIDE ───────────────────────────────────── */}
         <BTSMap />
       </main>
-      <FloatingContact />
       <Footer />
     </>
   );
