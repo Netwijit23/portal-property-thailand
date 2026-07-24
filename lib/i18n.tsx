@@ -9,6 +9,7 @@ const STRINGS = {
   // Navbar
   navBuy: ["Buy", "ซื้อ"],
   navRent: ["Rent", "เช่า"],
+  navBrowse: ["Browse homes", "ดูทรัพย์ทั้งหมด"],
   navAreas: ["Areas", "ทำเล"],
   navInsights: ["Insights", "บทความ"],
   navFaq: ["FAQ", "คำถามที่พบบ่อย"],

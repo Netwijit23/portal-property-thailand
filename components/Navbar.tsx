@@ -94,6 +94,19 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+            {/* Buyer-oriented CTA — this is a portal for renters/buyers, so a
+                "Browse homes" action sits alongside the owner "List a Property"
+                one rather than leaving only the seller CTA prominent (#30). */}
+            <Link
+              href="/listings"
+              className={`press hidden lg:inline-flex font-sans text-[13px] font-medium px-4 py-2 rounded-full transition-colors ${
+                transparent
+                  ? "text-white/90 hover:text-white"
+                  : "text-[#0A0A0A] hover:text-[#B8935A]"
+              }`}
+            >
+              {t("navBrowse")}
+            </Link>
             <Magnetic strength={0.4}>
               <Link
                 href="/enquire/owner"
