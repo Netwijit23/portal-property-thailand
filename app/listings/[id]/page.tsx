@@ -203,14 +203,27 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const displayTitle = listing.type === "condo" && listing.building_name
     ? listing.building_name
     : listing.title;
-  const displaySubtitle = listing.type === "condo" && listing.building_name
-    ? listing.title
-    : null;
+  // Only show a subtitle when it actually differs from the h1 — otherwise the
+  // building name printed twice (h1 + subtitle) for condos where title ==
+  // building_name (#25).
+  const displaySubtitle =
+    listing.type === "condo" && listing.building_name && listing.title &&
+    listing.title.trim().toLowerCase() !== listing.building_name.trim().toLowerCase()
+      ? listing.title
+      : null;
 
   const area = headlineArea(resolvedListing);
   const bedroomsLabel = listing.bedrooms === 0 ? "Studio" : `${listing.bedrooms} bed`;
   const propertyType = listing.type === "condo" ? "condo" : "house";
   const altContext = `${bedroomsLabel} ${propertyType} in ${area}, Bangkok`;
+
+  // Collapse the district-cluster zone string ("Sukhumvit, Asok, Thonglor, …")
+  // to its primary zone with a "+N" hint instead of a cluttered full list (#26).
+  const zoneParts = listing.zone?.split(",").map((z) => z.trim()).filter(Boolean) ?? [];
+  const primaryZone = zoneParts[0] ?? null;
+  const zoneLabel = primaryZone
+    ? `${primaryZone}${zoneParts.length > 1 ? ` +${zoneParts.length - 1}` : ""}`
+    : null;
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const listingUrl = `${siteUrl}/listings/${listing.id}`;
@@ -297,13 +310,13 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
               )}
 
               {resolvedListing.bts_station && (
-                <p className="font-sans text-sm flex items-center gap-1.5 text-[#1A3A2A] mb-2">
-                  <MapPin size={14} /> BTS {resolvedListing.bts_station}{listing.zone ? ` · ${listing.zone}` : ""}
+                <p className="font-sans text-sm flex items-center gap-1.5 text-[#1A3A2A] mb-2" title={listing.zone ?? undefined}>
+                  <MapPin size={14} /> BTS {resolvedListing.bts_station}{zoneLabel ? ` · ${zoneLabel}` : ""}
                 </p>
               )}
-              {!resolvedListing.bts_station && listing.zone && (
-                <p className="font-sans text-sm flex items-center gap-1.5 text-[#8A8680] mb-2">
-                  <Building2 size={14} /> {listing.zone}
+              {!resolvedListing.bts_station && zoneLabel && (
+                <p className="font-sans text-sm flex items-center gap-1.5 text-[#6B6863] mb-2" title={listing.zone ?? undefined}>
+                  <Building2 size={14} /> {zoneLabel}
                 </p>
               )}
 
