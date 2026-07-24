@@ -8,7 +8,11 @@ export default function ArticleSchema({ post, url }: { post: BlogPost; url: stri
     headline: post.title,
     description: post.excerpt,
     datePublished: post.publishDate,
-    dateModified: post.publishDate,
+    // Falls back to publishDate, but reflects a real edit when a post sets
+    // updatedDate — rather than always mirroring publishDate.
+    dateModified: post.updatedDate || post.publishDate,
+    // "Portal Property Team" is a team/organisation byline, so Organization is
+    // the correct author type here (an individual would use Person).
     author: {
       "@type": "Organization",
       name: post.author,

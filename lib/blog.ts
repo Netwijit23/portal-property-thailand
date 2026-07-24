@@ -11,6 +11,7 @@ export interface BlogPost {
   title: string;
   excerpt: string;
   publishDate: string; // ISO date
+  updatedDate?: string; // ISO date — set only when a post is genuinely revised
   author: string;
   sections: BlogSection[];
   /** Slugs of other posts to cross-link at the end of the article. */

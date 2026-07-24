@@ -1,5 +1,4 @@
 import { BUSINESS } from "@/lib/business";
-import { REVIEWS, getAggregateRating } from "@/lib/reviews";
 
 // Site-wide RealEstateAgent + LocalBusiness JSON-LD, rendered once in the
 // root layout so it's present on every page. RealEstateAgent is a more
@@ -7,7 +6,6 @@ import { REVIEWS, getAggregateRating } from "@/lib/reviews";
 // brokerages — we combine both via @type array so generic "local business"
 // signals and specific "real estate agent" signals both match.
 export default function OrganizationSchema() {
-  const { ratingValue, reviewCount } = getAggregateRating();
   const schema = {
     "@context": "https://schema.org",
     "@type": ["RealEstateAgent", "LocalBusiness"],
@@ -41,22 +39,10 @@ export default function OrganizationSchema() {
     knowsLanguage: BUSINESS.languages,
     sameAs: [BUSINESS.instagram, BUSINESS.googleBusinessProfile],
     hasMap: BUSINESS.googleBusinessProfile,
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue,
-      reviewCount,
-    },
-    review: REVIEWS.map((r) => ({
-      "@type": "Review",
-      author: { "@type": "Person", name: r.name },
-      datePublished: r.isoDate,
-      reviewBody: r.text,
-      reviewRating: {
-        "@type": "Rating",
-        ratingValue: r.rating,
-        bestRating: 5,
-      },
-    })),
+    // NOTE: aggregateRating + review were intentionally removed. Google
+    // disallows self-serving review markup on LocalBusiness/Organization and
+    // can issue a manual action for it. The testimonials still render as plain
+    // UI on the homepage — they are just no longer emitted as structured data.
   };
 
   return (
