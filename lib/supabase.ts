@@ -94,6 +94,21 @@ function enOnly(s: string | null | undefined): string | null {
   return /[฀-๿]/.test(s) ? null : s;
 }
 
+// The stored bts_mrt column is inconsistent — values arrive as "Asok",
+// "Asok BTS", "Thong Lo BTS", and even "BTS Thonglor stat" (a leading prefix
+// plus a truncated "station"). Normalise to the bare station name so callers
+// can prefix "BTS" exactly once and the commute graph can match by name.
+export function cleanStationName(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const s = raw
+    .trim()
+    .replace(/^(?:bts|mrt)\s+/i, "")   // leading "BTS "/"MRT "
+    .replace(/\s+(?:bts|mrt)$/i, "")   // trailing " BTS"/" MRT"
+    .replace(/\s+stat(?:ion)?$/i, "")  // trailing " station" or truncated " stat"
+    .trim();
+  return s || null;
+}
+
 export function dbToListing(r: DBListing): Listing {
   return {
     id: String(r.id),
@@ -104,7 +119,7 @@ export function dbToListing(r: DBListing): Listing {
     zone: enOnly(r.zone),
     zone_th: r.zone_th,
     building_name: enOnly(r.project),
-    bts_station: enOnly(r.bts_mrt),
+    bts_station: cleanStationName(enOnly(r.bts_mrt)),
     // The DB has both columns: legacy imports fill `floor`, the admin form
     // writes `floor_number` — read whichever is present so units show a floor.
     floor: r.floor ?? r.floor_number,
