@@ -22,7 +22,9 @@ export default function StickySearch() {
     e.preventDefault();
     const params = new URLSearchParams();
     params.set("type", tab);
-    if (q.trim()) params.set("zone", q.trim());
+    // Unified on the `q` search param so the term hydrates the results search
+    // box and shows as a removable chip (see #2).
+    if (q.trim()) params.set("q", q.trim());
     router.push(`/listings?${params.toString()}`);
   }
 

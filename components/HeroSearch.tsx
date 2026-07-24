@@ -236,7 +236,10 @@ export default function HeroSearch() {
   function handleSearch() {
     const params = new URLSearchParams();
     params.set("type", tab);
-    if (location.trim()) params.set("zone", location.trim());
+    // Free-text location maps to the `q` search param (unified with the results
+    // search box), not `zone` — `zone` is reserved for the sidebar's fixed
+    // dropdown so the term stays visible and individually removable.
+    if (location.trim()) params.set("q", location.trim());
     if (propType !== "Any type") params.set("propType", propType.toLowerCase());
     if (selectedBeds.length > 0) params.set("bedrooms", selectedBeds.join(","));
     const custom = parseInt(budgetCustom.replace(/[^\d]/g, ""), 10);
