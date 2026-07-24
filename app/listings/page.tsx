@@ -214,7 +214,7 @@ async function getListings(params: ListParams): Promise<ListResult> {
 export default async function ListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; view?: string; page?: string; q?: string }>;
+  searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; page?: string; q?: string }>;
 }) {
   const params = await searchParams;
   const result = await getListings(params);
@@ -333,7 +333,7 @@ function ListingsGrid({
 
 function pageHref(
   targetPage: number,
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; view?: string; page?: string; q?: string },
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; page?: string; q?: string },
 ): string {
   const params = new URLSearchParams();
   if (initialParams.q) params.set("q", initialParams.q);
@@ -357,7 +357,7 @@ function Pagination({
 }: {
   page: number;
   totalPages: number;
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; view?: string; page?: string; q?: string };
+  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; page?: string; q?: string };
 }) {
   // Compact page-number window (mobile-friendly — never more than 5 numbers)
   // with edge-anchored ellipses, plus big tappable Prev/Next.
