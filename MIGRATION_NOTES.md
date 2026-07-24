@@ -134,5 +134,22 @@ Two options, both a product/UX call (not applied):
 Validation was tightened in the meantime (the step gate now requires a real
 phone, not a single character). Please advise which direction you'd like.
 
+### #27 — loose zone filtering
+Filtering "Thonglor" also returns listings whose `zone` cluster string merely
+*contains* "Thonglor" (e.g. a unit labelled "Sukhumvit, Asok, Thonglor, …"). The
+detail/card UI now shows the primary zone (#26), and the results show a chip, so
+the behaviour is at least visible. A precise fix needs a normalised
+`primary_zone` (and/or `nearest_station`) column to match against instead of the
+free-text cluster — a DB change. Left as-is for now since the broader recall is
+arguably useful; flag if you'd prefer strict matching.
+
+### #32 — site-wide image right-click / long-press disable
+`globals.css` disables `user-select`/`-webkit-touch-callout`/drag on all `<img>`,
+and gallery tiles call `onContextMenu preventDefault`. This blocks "open image in
+new tab" / long-press for everyone and is weak anti-scraping. **Not changed**:
+this appears to be a deliberate content-protection choice (it pairs with the
+`PhotoWatermark` overlay). Removing it is a product decision — tell me if you'd
+like it relaxed for usability and I'll take it out.
+
 ---
 
