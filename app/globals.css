@@ -102,10 +102,12 @@
   z-index: 2;
 }
 
-/* Hide native cursor over the desktop gallery (custom View pill shown instead) */
+/* Desktop gallery shows a custom "View" pill that follows the pointer, but we
+   keep the real cursor visible (as a pointer) — hiding the native cursor
+   entirely hurts accessibility and disorients users. */
 @media (hover: hover) and (pointer: fine) {
   .gallery-cursor, .gallery-cursor * {
-    cursor: none;
+    cursor: pointer;
   }
 }
 

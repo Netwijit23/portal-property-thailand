@@ -10,6 +10,12 @@ const noSave = {
   style: { userSelect: "none" as const, WebkitUserDrag: "none" as unknown as undefined },
 };
 
+// Shared classes for the clickable gallery tiles — real <button>s so they're
+// keyboard-focusable and Enter/Space-activatable, with a visible focus ring.
+function tileCls(extra = "") {
+  return `group relative overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-[#B8935A] ${extra}`.trim();
+}
+
 export default function PhotoGallery({ photos, title, heroId, altContext }: { photos: string[]; title: string; heroId?: string; altContext?: string }) {
   const heroStyle = heroId ? { viewTransitionName: `listing-photo-${heroId}` } : undefined;
   // Full descriptive alt e.g. "MUNIQ Sukhumvit 23, 2 bed condo in Sukhumvit, Bangkok"
@@ -41,20 +47,50 @@ export default function PhotoGallery({ photos, title, heroId, altContext }: { ph
     setLightboxIndex((i) => (i === null ? 0 : (i + 1) % photos.length));
   }, [photos.length]);
 
-  // Keyboard navigation + body scroll lock while the lightbox is open
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard navigation, body scroll lock, focus trap + restore while the
+  // lightbox (a modal dialog) is open.
   useEffect(() => {
     if (lightboxIndex === null) return;
+    const restoreTo = document.activeElement as HTMLElement | null;
+
+    function focusable(): HTMLElement[] {
+      if (!dialogRef.current) return [];
+      return Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>('button, [href], [tabindex]:not([tabindex="-1"])'),
+      ).filter((el) => !el.hasAttribute("disabled"));
+    }
+
     function onKey(e: KeyboardEvent) {
       if (e.key === "ArrowLeft") prev();
-      if (e.key === "ArrowRight") next();
-      if (e.key === "Escape") setLightboxIndex(null);
+      else if (e.key === "ArrowRight") next();
+      else if (e.key === "Escape") setLightboxIndex(null);
+      else if (e.key === "Tab") {
+        const items = focusable();
+        if (!items.length) return;
+        const firstEl = items[0];
+        const lastEl = items[items.length - 1];
+        const active = document.activeElement as HTMLElement;
+        if (e.shiftKey && (active === firstEl || !dialogRef.current?.contains(active))) {
+          e.preventDefault();
+          lastEl.focus();
+        } else if (!e.shiftKey && active === lastEl) {
+          e.preventDefault();
+          firstEl.focus();
+        }
+      }
     }
+
     document.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Move focus into the dialog on open
+    dialogRef.current?.focus();
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
+      restoreTo?.focus?.();
     };
   }, [lightboxIndex, prev, next]);
 
@@ -77,41 +113,52 @@ export default function PhotoGallery({ photos, title, heroId, altContext }: { ph
           </div>
         </div>
 
+        {/* Adaptive grid — the cell count is chosen so the photos always tile
+            the frame exactly, never leaving an empty black cell (1, 2, 3, 4,
+            and 5+ photos each get their own fitting layout). */}
         {photos.length === 1 ? (
-          <div className="relative h-[60vh] cursor-pointer" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()} style={heroStyle}>
+          <button type="button" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()} style={heroStyle} aria-label={`Open photo 1 of ${photos.length}`} className={tileCls("relative block w-full h-[60vh]")}>
             <PhotoWatermark size="md">
               <Image src={main} alt={baseAlt} fill className="object-cover opacity-90" priority sizes="100vw" {...noSave} />
             </PhotoWatermark>
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/40 to-transparent pointer-events-none" />
+            <span className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A]/40 to-transparent pointer-events-none" />
+          </button>
+        ) : photos.length === 2 ? (
+          <div className="grid grid-cols-2 h-[60vh] gap-1">
+            {photos.slice(0, 2).map((photo, i) => (
+              <button key={i} type="button" onClick={() => setLightboxIndex(i)} onContextMenu={(e) => e.preventDefault()} style={i === 0 ? heroStyle : undefined} aria-label={`Open photo ${i + 1} of ${photos.length}`} className={tileCls()}>
+                <PhotoWatermark size="md">
+                  <Image src={photo} alt={i === 0 ? baseAlt : `${baseAlt} — photo ${i + 1}`} fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority={i === 0} sizes="50vw" {...noSave} />
+                </PhotoWatermark>
+              </button>
+            ))}
           </div>
         ) : (
-          <div className="grid grid-cols-4 grid-rows-2 h-[60vh] gap-1">
+          <div className={`grid ${photos.length === 3 ? "grid-cols-3" : "grid-cols-4"} grid-rows-2 h-[60vh] gap-1`}>
             {/* Main large photo */}
-            <div className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()} style={heroStyle}>
+            <button type="button" onClick={() => setLightboxIndex(0)} onContextMenu={(e) => e.preventDefault()} style={heroStyle} aria-label={`Open photo 1 of ${photos.length}`} className={tileCls("col-span-2 row-span-2")}>
               <PhotoWatermark size="md">
-                <Image src={main} alt={baseAlt} fill className="object-cover hover:scale-105 transition-transform duration-500" priority sizes="50vw" {...noSave} />
+                <Image src={main} alt={baseAlt} fill className="object-cover group-hover:scale-105 transition-transform duration-500" priority sizes="50vw" {...noSave} />
               </PhotoWatermark>
-            </div>
-            {/* 4 smaller previews */}
-            {previews.map((photo, i) => (
-              <div key={i} className="relative cursor-pointer overflow-hidden" onClick={() => setLightboxIndex(i + 1)} onContextMenu={(e) => e.preventDefault()}>
-                <Image src={photo} alt={`${baseAlt} — photo ${i + 2}`} fill className="object-cover hover:scale-105 transition-transform duration-500" sizes="25vw" {...noSave} />
-                {/* "Show all" overlay on last thumbnail */}
-                {i === 3 && hasMore && (
-                  <div
-                    className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1 cursor-pointer"
-                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(4); }}
-                  >
-                    <Grid2X2 size={20} className="text-white" />
-                    <span className="font-sans text-white text-sm font-medium">+{photos.length - 5} more</span>
-                  </div>
-                )}
-              </div>
-            ))}
-            {/* Fill empty slots if < 5 photos */}
-            {Array.from({ length: Math.max(0, 4 - previews.length) }).map((_, i) => (
-              <div key={`empty-${i}`} className="bg-[#111]" />
-            ))}
+            </button>
+            {/* Smaller previews (photos 2–5) */}
+            {previews.map((photo, i) => {
+              const isLast = i === previews.length - 1;
+              // Exactly 4 photos → 3 previews in a 4-col grid: let the last one
+              // span two columns so the bottom-right cell isn't left empty.
+              const spanTwo = photos.length === 4 && isLast;
+              return (
+                <button key={i} type="button" onClick={() => setLightboxIndex(i + 1)} onContextMenu={(e) => e.preventDefault()} aria-label={`Open photo ${i + 2} of ${photos.length}`} className={tileCls(spanTwo ? "col-span-2" : "")}>
+                  <Image src={photo} alt={`${baseAlt} — photo ${i + 2}`} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="25vw" {...noSave} />
+                  {isLast && hasMore && (
+                    <span className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1 pointer-events-none">
+                      <Grid2X2 size={20} className="text-white" />
+                      <span className="font-sans text-white text-sm font-medium">+{photos.length - 5} more</span>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -126,9 +173,17 @@ export default function PhotoGallery({ photos, title, heroId, altContext }: { ph
 
       {/* Lightbox */}
       {lightboxIndex !== null && (
-        <div className="fixed inset-0 z-50 bg-black flex items-center justify-center" onClick={() => setLightboxIndex(null)}>
+        <div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Photo ${lightboxIndex + 1} of ${photos.length}`}
+          tabIndex={-1}
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center focus:outline-none"
+          onClick={() => setLightboxIndex(null)}
+        >
           {/* Close */}
-          <button className="absolute top-4 right-4 text-white/80 hover:text-white z-10" onClick={() => setLightboxIndex(null)}>
+          <button aria-label="Close photo viewer" className="absolute top-4 right-4 text-white/80 hover:text-white z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-full" onClick={() => setLightboxIndex(null)}>
             <X size={28} />
           </button>
 
