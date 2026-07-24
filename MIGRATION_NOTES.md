@@ -89,3 +89,50 @@ Then in `getListings()` replace the in-memory price branch with
 `.order("effective_price", { ascending, nullsFirst: false }).range(from, to)`.
 
 ---
+
+## 5. RLS & storage policies (verify / apply)
+
+### `leads` table must be INSERT-only for `anon` (#12)
+The public forms (`LeadForm`, `EnquiryModal`, kit `submitEnquiry`) insert to
+`leads` with the anon key, which is public in the client bundle. Confirm the RLS
+policy allows **INSERT only** and **no SELECT** for `anon` — otherwise anyone
+could read every lead's PII. Suggested:
+
+```sql
+alter table leads enable row level security;
+create policy "anon can insert leads" on leads
+  for insert to anon with check (true);
+-- Ensure there is NO "for select ... to anon" policy.
+```
+
+The client honeypot/timing guard shipped in `lib/formGuards.ts` is only a first
+layer; for durable rate limiting move it to a shared store (e.g. Upstash) or a
+server-token check — `lib/api.ts`'s `rateLimit` is per-instance in-memory.
+
+### Owner photo bucket (#23)
+`/api/owner-photo` now sniffs real image magic bytes and guards `formData()`, but
+it still uploads via the service role to a public bucket with no submission
+token. Recommended hardening:
+- Restrict the `listing-photos` bucket (size/type limits at the storage layer).
+- Issue a short-lived submission token when the owner form opens and require it
+  on upload, so uploads are tied to a real form session.
+
+---
+
+## 6. Deferred for product decision
+
+### #11 — multi-step forms capture contact late
+`ClientForm` asks profiling questions (nationality/occupation/occupants/pets,
+step 3) **before** name + phone (step 4), and all forms write the lead only on
+the final submit — so a drop-off yields nothing or an uncontactable record.
+
+Two options, both a product/UX call (not applied):
+1. **Reorder** so name + phone come first (contact before profiling).
+2. **Persist a partial lead** once phone is entered, then enrich on completion —
+   note this creates incomplete CRM records that need a "partial" status.
+
+Validation was tightened in the meantime (the step gate now requires a real
+phone, not a single character). Please advise which direction you'd like.
+
+---
+
