@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import ListingCard from "@/components/ListingCard";
 import ListingsFilters from "@/components/ListingsFilters";
 import ListingsSearch from "@/components/ListingsSearch";
+import ActiveFilters from "@/components/ActiveFilters";
 import Reveal from "@/components/Reveal";
 import SortSelect from "@/components/SortSelect";
 import { Suspense } from "react";
@@ -101,16 +102,110 @@ export const metadata: Metadata = buildMetadata({
   },
 ]; */
 
-async function getListings(): Promise<Listing[]> {
+const PAGE_SIZE = 24;
+
+// Only the columns the cards + filters need — the large description/notes
+// columns are deliberately excluded so we don't ship ~779 long text blobs to
+// render a grid of thumbnails.
+const CARD_COLUMNS =
+  "id, title, title_en, zone, zone_th, project, building_type, listing_type, status, available_from, floor, floor_number, bedrooms, bathrooms, size_sqm, sale_price, rent_price_1m, agent_name, agent_tel, agent_line, bts_mrt, photos, created_at, updated_at, availability_checked_at, featured";
+
+type ListParams = {
+  type?: string; zone?: string; propType?: string; bedrooms?: string;
+  minBeds?: string; priceMin?: string; priceMax?: string; sort?: string;
+  page?: string; q?: string;
+};
+
+// Strip characters that carry meaning in a PostgREST filter string so a search
+// term interpolated into .or() can never alter the query structure (same class
+// of bug fixed in the owner endpoint, #8).
+function sanitizeTerm(s: string): string {
+  return s.replace(/[,()."*:\\%]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+type ListResult = { items: Listing[]; total: number; page: number; totalPages: number; error: boolean };
+
+async function getListings(params: ListParams): Promise<ListResult> {
   noStore();
-  const { data, error } = await supabase
+
+  const priceMin = parseInt(params.priceMin ?? "", 10);
+  const priceMax = parseInt(params.priceMax ?? "", 10);
+  const hasPriceSort = params.sort === "price-asc" || params.sort === "price-desc";
+  const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
+
+  // Build the filtered query once (count + rows share it), then branch only on
+  // ordering/pagination below.
+  let query = supabase
     .from("listings")
-    .select("*")
-    .in("status", ["available", "reserved", "rented"])
+    .select(CARD_COLUMNS, { count: "exact" })
     .eq("is_published", true)
-    .order("created_at", { ascending: false });
-  if (error || !data) return [];
-  return (data as DBListing[]).map(dbToListing);
+    .in("status", ["available", "reserved", "rented"]);
+
+  if (params.type === "rent") query = query.in("listing_type", ["rent", "both"]);
+  else if (params.type === "sale") query = query.in("listing_type", ["sale", "both"]);
+
+  if (params.propType === "house") query = query.ilike("building_type", "house");
+  else if (params.propType === "condo") query = query.or("building_type.is.null,building_type.not.ilike.house");
+
+  // Free-text search (q) and the sidebar zone value both match across the
+  // location columns; sanitized before interpolation so user input can't
+  // alter the PostgREST filter structure.
+  const term = sanitizeTerm(params.q || params.zone || "");
+  if (term) {
+    const p = `*${term}*`;
+    query = query.or(`title.ilike.${p},project.ilike.${p},zone.ilike.${p},zone_th.ilike.${p},bts_mrt.ilike.${p}`);
+  }
+
+  if (params.minBeds) {
+    const min = parseInt(params.minBeds, 10);
+    if (!isNaN(min)) query = query.gte("bedrooms", min);
+  } else if (params.bedrooms) {
+    const beds = params.bedrooms.split(",").map(Number).filter((n) => !isNaN(n));
+    if (beds.length) query = query.or(beds.map((b) => (b >= 5 ? "bedrooms.gte.5" : `bedrooms.eq.${b}`)).join(","));
+  }
+
+  if (!isNaN(priceMin) || !isNaN(priceMax)) {
+    const lo = !isNaN(priceMin) ? priceMin : 0;
+    const hi = !isNaN(priceMax) ? priceMax : 2_000_000_000;
+    // Match on whichever price column applies; listings with no price in range
+    // (incl. price-on-request) fall out, matching the prior behaviour.
+    query = query.or(`and(rent_price_1m.gte.${lo},rent_price_1m.lte.${hi}),and(sale_price.gte.${lo},sale_price.lte.${hi})`);
+  }
+
+  try {
+    if (hasPriceSort) {
+      // Coalesced price ordering isn't expressible in PostgREST without a
+      // generated column (see MIGRATION_NOTES.md). Fetch the filtered set with
+      // a safety cap and sort/paginate in memory — reduced columns keep this
+      // cheap, and it only runs when the user explicitly sorts by price.
+      const { data, count, error } = await query.order("created_at", { ascending: false }).limit(1000);
+      if (error) return { items: [], total: 0, page: 1, totalPages: 1, error: true };
+      const all = (data as unknown as DBListing[]).map(dbToListing);
+      const dir = params.sort === "price-asc" ? 1 : -1;
+      const eff = (l: Listing) => l.rent_price ?? l.sale_price ?? null;
+      all.sort((a, b) => {
+        const pa = eff(a); const pb = eff(b);
+        if (pa == null) return 1;
+        if (pb == null) return -1;
+        return (pa - pb) * dir;
+      });
+      const totalPages = Math.max(1, Math.ceil(all.length / PAGE_SIZE));
+      const safePage = Math.min(page, totalPages);
+      const items = all.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+      return { items, total: count ?? all.length, page: safePage, totalPages, error: false };
+    }
+
+    // Default: newest-first, paginated server-side with an exact count.
+    const from = (page - 1) * PAGE_SIZE;
+    const { data, count, error } = await query.order("created_at", { ascending: false }).range(from, from + PAGE_SIZE - 1);
+    if (error) return { items: [], total: 0, page: 1, totalPages: 1, error: true };
+    const total = count ?? 0;
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const items = (data as unknown as DBListing[]).map(dbToListing);
+    return { items, total, page: Math.min(page, totalPages), totalPages, error: false };
+  } catch {
+    return { items: [], total: 0, page: 1, totalPages: 1, error: true };
+  }
 }
 
 export default async function ListingsPage({
@@ -119,7 +214,7 @@ export default async function ListingsPage({
   searchParams: Promise<{ type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; view?: string; page?: string; q?: string }>;
 }) {
   const params = await searchParams;
-  const listings = await getListings();
+  const result = await getListings(params);
 
   return (
     <>
@@ -149,7 +244,10 @@ export default async function ListingsPage({
 
             {/* Grid */}
             <div className="flex-1">
-              <ListingsGrid listings={listings} initialParams={params} />
+              <Suspense fallback={null}>
+                <ActiveFilters />
+              </Suspense>
+              <ListingsGrid result={result} initialParams={params} />
             </div>
           </div>
         </div>
@@ -159,109 +257,53 @@ export default async function ListingsPage({
   );
 }
 
-function effectivePrice(l: Listing): number | null {
-  // For sorting: rent listings compare by monthly rent, sale by sale price
-  return l.rent_price ?? l.sale_price ?? null;
-}
-
-const PAGE_SIZE = 24;
-
+// Pure presenter — all filtering/sorting/pagination now happens server-side in
+// getListings(). Distinguishes a genuine "no matches" from a fetch failure so a
+// transient DB error doesn't read as "no inventory" (#15).
 function ListingsGrid({
-  listings,
+  result,
   initialParams,
 }: {
-  listings: Listing[];
-  initialParams: { type?: string; zone?: string; propType?: string; bedrooms?: string; minBeds?: string; priceMin?: string; priceMax?: string; sort?: string; view?: string; page?: string; q?: string };
+  result: ListResult;
+  initialParams: ListParams;
 }) {
-  let filtered = listings;
-  if (initialParams.q) {
-    const q = initialParams.q.toLowerCase();
-    filtered = filtered.filter((l) =>
-      l.title?.toLowerCase().includes(q) ||
-      l.building_name?.toLowerCase().includes(q) ||
-      l.zone?.toLowerCase().includes(q) ||
-      l.zone_th?.toLowerCase().includes(q) ||
-      l.bts_station?.toLowerCase().includes(q) ||
-      l.description?.toLowerCase().includes(q)
+  const { items, total, page, totalPages, error } = result;
+  const hasActiveFilters = Boolean(
+    initialParams.q || initialParams.zone || initialParams.type || initialParams.propType ||
+    initialParams.bedrooms || initialParams.minBeds || initialParams.priceMin || initialParams.priceMax,
+  );
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <p className="font-cormorant text-3xl text-[#8A8680] mb-3">We couldn&apos;t load listings just now</p>
+        <p className="font-sans text-sm text-[#8A8680] mb-6">A temporary hiccup on our end — please try again.</p>
+        <a href="/listings" className="font-sans text-sm font-medium px-6 py-2.5 rounded-full bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors">
+          Retry
+        </a>
+      </div>
     );
-  }
-  if (initialParams.type) {
-    filtered = filtered.filter((l) =>
-      l.listing_type === initialParams.type || l.listing_type === "both"
-    );
-  }
-  if (initialParams.zone) {
-    const q = initialParams.zone.toLowerCase();
-    filtered = filtered.filter((l) =>
-      l.zone?.toLowerCase().includes(q) ||
-      l.zone_th?.toLowerCase().includes(q) ||
-      l.bts_station?.toLowerCase().includes(q) ||
-      l.title?.toLowerCase().includes(q) ||
-      l.building_name?.toLowerCase().includes(q)
-    );
-  }
-  if (initialParams.propType) filtered = filtered.filter((l) => l.type === initialParams.propType);
-  // `bedrooms` is the hero search's multi-select of exact counts (0=studio, 5=5+);
-  // `minBeds` is the sidebar's "N+" minimum filter. They are different semantics.
-  if (initialParams.bedrooms) {
-    const beds = initialParams.bedrooms.split(",").map(Number).filter((n) => !isNaN(n));
-    filtered = filtered.filter((l) =>
-      beds.some((b) => (b >= 5 ? l.bedrooms >= 5 : l.bedrooms === b))
-    );
-  }
-  if (initialParams.minBeds) {
-    const min = parseInt(initialParams.minBeds, 10);
-    if (!isNaN(min)) filtered = filtered.filter((l) => l.bedrooms >= min);
-  }
-  const priceMin = parseInt(initialParams.priceMin ?? "", 10);
-  const priceMax = parseInt(initialParams.priceMax ?? "", 10);
-  if (!isNaN(priceMin) || !isNaN(priceMax)) {
-    filtered = filtered.filter((l) => {
-      const p = effectivePrice(l);
-      if (p == null) return false; // price-on-request can't satisfy a budget filter
-      if (!isNaN(priceMin) && p < priceMin) return false;
-      if (!isNaN(priceMax) && p > priceMax) return false;
-      return true;
-    });
   }
 
-  if (initialParams.sort === "price-asc" || initialParams.sort === "price-desc") {
-    const dir = initialParams.sort === "price-asc" ? 1 : -1;
-    filtered = [...filtered].sort((a, b) => {
-      const pa = effectivePrice(a);
-      const pb = effectivePrice(b);
-      if (pa == null) return 1;
-      if (pb == null) return -1;
-      return (pa - pb) * dir;
-    });
-  }
-
-  if (!filtered.length) {
-    const noResults = listings.length > 0;
+  if (!items.length) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <p className="font-cormorant text-3xl text-[#8A8680] mb-3">
-          {noResults ? "No properties match your filters" : "No properties available"}
+          {hasActiveFilters ? "No properties match your filters" : "No properties available"}
         </p>
         <p className="font-sans text-sm text-[#8A8680]">
-          {noResults ? "Try adjusting your filters" : "Check back soon — new listings are added regularly"}
+          {hasActiveFilters ? "Try adjusting your filters" : "Check back soon — new listings are added regularly"}
         </p>
       </div>
     );
   }
 
-  // Paginate the already-filtered set — rendering all ~700 cards (with
-  // images) at once was the single biggest mobile performance problem on
-  // this page: a huge DOM, hundreds of images in flight, sluggish scroll.
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const page = Math.min(Math.max(1, parseInt(initialParams.page ?? "1", 10) || 1), totalPages);
-  const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const [first, ...rest] = pageItems;
+  const [first, ...rest] = items;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6 gap-3">
-        <p className="font-sans text-sm text-[#8A8680]">{filtered.length} properties</p>
+        <p className="font-sans text-sm text-[#8A8680]">{total} propert{total === 1 ? "y" : "ies"}</p>
         <Suspense fallback={null}>
           <SortSelect />
         </Suspense>
