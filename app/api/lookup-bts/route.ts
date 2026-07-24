@@ -1,23 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { rateLimit, clientIp, str } from "@/lib/api";
+import { lookupNearestStation } from "@/lib/ai";
+
+// Internal-only enrichment endpoint. The public site no longer calls this on
+// render (the listing page uses lib/ai directly), so it is gated behind a
+// shared secret to stop anonymous callers from running up the Anthropic bill.
+// Requires AI_INTERNAL_SECRET to be set AND matched via the x-internal-secret
+// header — fail-closed so a missing secret disables the route rather than
+// leaving it open. See MIGRATION_NOTES.md.
+function authed(req: NextRequest): boolean {
+  const secret = process.env.AI_INTERNAL_SECRET;
+  return Boolean(secret && req.headers.get("x-internal-secret") === secret);
+}
 
 export async function POST(req: NextRequest) {
-  const { building_name, zone } = await req.json();
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return NextResponse.json({ bts: null });
+  if (!authed(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!rateLimit(`lookup-bts:${clientIp(req)}`, 20, 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
 
-  const client = new Anthropic({ apiKey });
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const b = (body ?? {}) as Record<string, unknown>;
 
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 50,
-    messages: [{
-      role: "user",
-      content: `What is the nearest BTS or MRT station to "${building_name}"${zone ? ` in ${zone}, Bangkok` : " in Bangkok"}? Reply with ONLY the station name (e.g. "Thong Lo", "Asok", "Phrom Phong"). If unknown, reply "unknown".`,
-    }],
+  const bts = await lookupNearestStation({
+    building_name: str(b.building_name, 200),
+    zone: str(b.zone, 200),
   });
-
-  const raw = message.content[0].type === "text" ? message.content[0].text.trim() : null;
-  const bts = raw && raw.toLowerCase() !== "unknown" ? raw : null;
   return NextResponse.json({ bts });
 }

@@ -14,6 +14,7 @@ import RecentlyViewed from "@/components/RecentlyViewed";
 import ListingTracker from "@/components/ListingTracker";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
+import { generateListingDescription } from "@/lib/ai";
 import { Bed, Bath, Maximize2, MapPin, Building2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense, cache } from "react";
@@ -119,48 +120,22 @@ async function getSimilar(listing: Listing): Promise<Listing[]> {
   return data ? (data as DBListing[]).map(dbToListing) : [];
 }
 
-async function lookupBts(listing: Listing): Promise<string | null> {
-  if (listing.bts_station) return listing.bts_station;
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  try {
-    const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-    const res = await fetch(`${base}/api/lookup-bts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ building_name: listing.building_name, zone: listing.zone }),
-    });
-    const json = await res.json();
-    return json.bts || null;
-  } catch {
-    return null;
-  }
-}
-
-async function getDescription(listing: Listing): Promise<string | null> {
+// Streamed enrichment (see PropertyDescription) — never on the first-paint
+// path. Returns stored copy instantly; only generates when it's genuinely
+// missing, and even then the shell has already rendered.
+async function resolveDescription(listing: Listing): Promise<string | null> {
   if (listing.description) return listing.description;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return null;
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/generate-description`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        building_name: listing.building_name,
-        zone: listing.zone,
-        bts_station: listing.bts_station,
-        bedrooms: listing.bedrooms,
-        bathrooms: listing.bathrooms,
-        size_sqm: listing.size_sqm,
-        floor: listing.floor,
-        listing_type: listing.listing_type,
-        type: listing.type,
-      }),
-    });
-    const json = await res.json();
-    return json.description || null;
-  } catch {
-    return null;
-  }
+  return generateListingDescription({
+    building_name: listing.building_name,
+    zone: listing.zone,
+    bts_station: listing.bts_station,
+    bedrooms: listing.bedrooms,
+    bathrooms: listing.bathrooms,
+    size_sqm: listing.size_sqm,
+    floor: listing.floor,
+    listing_type: listing.listing_type,
+    type: listing.type,
+  });
 }
 
 // The zone column holds district-cluster strings ("Sathon, Narathiwat, Chong
@@ -215,14 +190,14 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
   const listing = await getListing(id);
   if (!listing) notFound();
 
-  const [similar, description, btsStation] = await Promise.all([
-    getSimilar(listing),
-    getDescription(listing),
-    lookupBts(listing),
-  ]);
-  const resolvedListing = { ...listing, bts_station: btsStation };
+  // Only the fast, indexed similar-listings query is awaited before paint.
+  // The AI description streams in separately via <Suspense> below so it can
+  // never delay first paint, and the nearest station is read straight from
+  // the stored (normalised) column rather than a per-view AI lookup.
+  const similar = await getSimilar(listing);
+  const resolvedListing = listing;
 
-  const photos = listing.photos?.length ? listing.photos : ["https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80"];
+  const photos = listing.photos?.length ? listing.photos : [];
   const price = formatPrice(listing);
 
   const displayTitle = listing.type === "condo" && listing.building_name
@@ -256,7 +231,11 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
         bts_station: resolvedListing.bts_station,
       }} />
       <main className="pt-16 bg-[#FAFAF8]">
-        <PhotoGallery photos={photos} title={displayTitle} heroId={listing.id} altContext={altContext} />
+        {photos.length > 0 ? (
+          <PhotoGallery photos={photos} title={displayTitle} heroId={listing.id} altContext={altContext} />
+        ) : (
+          <NoPhotosPlaceholder />
+        )}
 
         {/* Content */}
         <div className="max-w-7xl mx-auto px-6 py-12">
@@ -373,15 +352,12 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 ))}
               </div>
 
-              {/* Description — Thai users see the original Thai copy when it exists */}
-              {description && (
-                <div className="mb-10">
-                  <h2 className="font-cormorant text-2xl text-[#0A0A0A] mb-4"><T k="aboutProperty" /></h2>
-                  <p className="font-sans text-[#8A8680] leading-relaxed">
-                    <BiText en={description} th={listing.description_th} />
-                  </p>
-                </div>
-              )}
+              {/* Description — Thai users see the original Thai copy when it
+                  exists. Streamed in a Suspense boundary so a listing whose
+                  copy must be generated never blocks first paint. */}
+              <Suspense fallback={<DescriptionSkeleton />}>
+                <PropertyDescription listing={listing} />
+              </Suspense>
 
               {/* Commute check */}
               <div className="mt-8">
@@ -427,5 +403,48 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
       </main>
       <Footer />
     </>
+  );
+}
+
+// Streamed out-of-band from the main shell. Renders stored copy instantly;
+// only a genuinely description-less listing pays the (now non-blocking) AI cost.
+async function PropertyDescription({ listing }: { listing: Listing }) {
+  const description = await resolveDescription(listing);
+  if (!description) return null;
+  return (
+    <div className="mb-10">
+      <h2 className="font-cormorant text-2xl text-[#0A0A0A] mb-4"><T k="aboutProperty" /></h2>
+      <p className="font-sans text-[#8A8680] leading-relaxed">
+        <BiText en={description} th={listing.description_th} />
+      </p>
+    </div>
+  );
+}
+
+function DescriptionSkeleton() {
+  return (
+    <div className="mb-10" aria-hidden>
+      <div className="h-7 w-48 rounded bg-[#EFEBE3] mb-4 animate-pulse" />
+      <div className="space-y-2.5">
+        <div className="h-4 w-full rounded bg-[#EFEBE3] animate-pulse" />
+        <div className="h-4 w-[92%] rounded bg-[#EFEBE3] animate-pulse" />
+        <div className="h-4 w-[78%] rounded bg-[#EFEBE3] animate-pulse" />
+      </div>
+    </div>
+  );
+}
+
+// Shown instead of the gallery when a listing has no photos yet — a branded
+// "coming soon" panel rather than a stock stand-in that misrepresents the unit.
+function NoPhotosPlaceholder() {
+  return (
+    <div className="relative h-[42vh] min-h-[280px] bg-[#F0ECE4] flex flex-col items-center justify-center gap-3">
+      <div className="w-14 h-14 rounded-full bg-white/70 flex items-center justify-center text-[#B8935A]">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+        </svg>
+      </div>
+      <p className="font-sans text-[13px] tracking-wide text-[#8A8680]">Photos coming soon</p>
+    </div>
   );
 }

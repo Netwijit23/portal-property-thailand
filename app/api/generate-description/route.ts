@@ -1,39 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { rateLimit, clientIp, str } from "@/lib/api";
+import { generateListingDescription } from "@/lib/ai";
+
+// Internal-only enrichment endpoint. The public site generates descriptions via
+// lib/ai directly (streamed, off the render path), so this HTTP route exists for
+// internal/admin callers and is gated behind a shared secret. Fail-closed: a
+// missing AI_INTERNAL_SECRET disables it. See MIGRATION_NOTES.md.
+function authed(req: NextRequest): boolean {
+  const secret = process.env.AI_INTERNAL_SECRET;
+  return Boolean(secret && req.headers.get("x-internal-secret") === secret);
+}
 
 export async function POST(req: NextRequest) {
-  const { building_name, zone, bts_station, bedrooms, bathrooms, size_sqm, floor, listing_type, type } = await req.json();
-
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ description: null });
+  if (!authed(req)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!rateLimit(`gen-desc:${clientIp(req)}`, 10, 60 * 1000)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  const client = new Anthropic({ apiKey });
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const b = (body ?? {}) as Record<string, unknown>;
 
-  const bedLabel = bedrooms === 0 ? "studio" : `${bedrooms}-bedroom`;
-  const prompt = `Write a concise, professional 3–4 sentence description for a real estate listing in Bangkok, Thailand.
+  const toInt = (v: unknown) => {
+    const n = typeof v === "number" ? v : parseInt(String(v ?? ""), 10);
+    return Number.isFinite(n) ? n : 0;
+  };
 
-Property details:
-- Building: ${building_name || "Residential condominium"}
-- Type: ${type === "house" ? "House/Villa" : "Condominium"}
-- Location: ${zone || "Bangkok"}${bts_station ? `, near ${bts_station} BTS station` : ""}
-- Unit: ${bedLabel}, ${bathrooms} bathroom${bathrooms > 1 ? "s" : ""}, ${size_sqm} sqm${floor ? `, floor ${floor}` : ""}
-- Available for: ${listing_type === "rent" ? "rent" : "purchase"}
-
-Include mention of:
-1. The building and its key facilities (pool, gym, concierge, etc.) — use your knowledge of this Bangkok building if you know it
-2. The unit's highlights (views, layout, finishes)
-3. The neighbourhood's lifestyle appeal (nearby BTS, restaurants, malls, parks)
-
-Write in elegant, aspirational English. Do not invent specific prices or unit numbers. Output only the description text, no headers.`;
-
-  const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 300,
-    messages: [{ role: "user", content: prompt }],
+  const description = await generateListingDescription({
+    building_name: str(b.building_name, 200),
+    zone: str(b.zone, 200),
+    bts_station: str(b.bts_station, 100),
+    bedrooms: toInt(b.bedrooms),
+    bathrooms: toInt(b.bathrooms),
+    size_sqm: b.size_sqm != null ? toInt(b.size_sqm) : null,
+    floor: b.floor != null ? toInt(b.floor) : null,
+    listing_type: str(b.listing_type, 20) || "rent",
+    type: str(b.type, 20) || "condo",
   });
-
-  const description = message.content[0].type === "text" ? message.content[0].text : null;
   return NextResponse.json({ description });
 }
