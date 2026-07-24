@@ -163,9 +163,11 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
             <span className="flex items-center gap-1 font-sans text-xs">
               <Bath size={12} /> {listing.bathrooms}
             </span>
-            <span className="flex items-center gap-1 font-sans text-xs">
-              <Maximize2 size={12} /> {listing.size_sqm} {t("sqm")}
-            </span>
+            {listing.size_sqm != null && (
+              <span className="flex items-center gap-1 font-sans text-xs">
+                <Maximize2 size={12} /> {listing.size_sqm} {t("sqm")}
+              </span>
+            )}
             {listing.floor != null && (
               <span className="flex items-center gap-1 font-sans text-xs" title={`Floor ${listing.floor}`}>
                 <Building2 size={12} /> {listing.floor}F

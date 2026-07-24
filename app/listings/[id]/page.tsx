@@ -178,7 +178,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const price = formatPrice(listing);
   const description = truncateDescription(
     listing.description ||
-    `${bedroomsLabel} ${listing.type} for ${listing.listing_type === "both" ? "rent or sale" : listing.listing_type} in ${area}${listing.bts_station ? `, near BTS ${listing.bts_station}` : ""}. ${listing.size_sqm} sqm, ${price}. Book a viewing today.`
+    `${bedroomsLabel} ${listing.type} for ${listing.listing_type === "both" ? "rent or sale" : listing.listing_type} in ${area}${listing.bts_station ? `, near BTS ${listing.bts_station}` : ""}.${listing.size_sqm != null ? ` ${listing.size_sqm} sqm,` : ""} ${price}. Book a viewing today.`
   );
   const image = listing.photos?.[0];
 
@@ -341,7 +341,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 {([
                   { key: "bedrooms", icon: <Bed size={20} />, value: listing.bedrooms || <T k="studio" /> },
                   { key: "bathrooms", icon: <Bath size={20} />, value: listing.bathrooms },
-                  { key: "size", icon: <Maximize2 size={20} />, value: <>{listing.size_sqm} <T k="sqm" /></> },
+                  { key: "size", icon: <Maximize2 size={20} />, value: listing.size_sqm != null ? <>{listing.size_sqm} <T k="sqm" /></> : "—" },
                   { key: "floor", icon: <Building2 size={20} />, value: listing.floor || "—" },
                 ] as const).map((stat) => (
                   <div key={stat.key} className="bg-[#F5F2EC] rounded-2xl p-4 text-center">

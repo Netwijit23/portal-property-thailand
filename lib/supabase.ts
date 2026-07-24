@@ -71,7 +71,7 @@ export type Listing = {
   floor: number | null
   bedrooms: number
   bathrooms: number
-  size_sqm: number
+  size_sqm: number | null
   sale_price: number | null
   rent_price: number | null
   description: string | null
@@ -125,7 +125,9 @@ export function dbToListing(r: DBListing): Listing {
     floor: r.floor ?? r.floor_number,
     bedrooms: r.bedrooms,
     bathrooms: r.bathrooms,
-    size_sqm: r.size_sqm || 0,
+    // Keep null when the size is genuinely unknown so the UI can show "—"
+    // instead of a misleading "0 sqm".
+    size_sqm: r.size_sqm ?? null,
     sale_price: r.sale_price,
     rent_price: r.rent_price_1m,
     description: r.website_description || r.description_en || enOnly(r.description),

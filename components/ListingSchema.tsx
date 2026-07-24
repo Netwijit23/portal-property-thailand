@@ -43,7 +43,7 @@ export default function ListingSchema({ listing, url }: { listing: Listing; url:
     additionalProperty: [
       { "@type": "PropertyValue", name: "bedrooms", value: listing.bedrooms },
       { "@type": "PropertyValue", name: "bathrooms", value: listing.bathrooms },
-      { "@type": "PropertyValue", name: "floorSize", value: `${listing.size_sqm} sqm` },
+      ...(listing.size_sqm != null ? [{ "@type": "PropertyValue", name: "floorSize", value: `${listing.size_sqm} sqm` }] : []),
       ...(listing.floor != null ? [{ "@type": "PropertyValue", name: "floor", value: listing.floor }] : []),
       ...(listing.bts_station ? [{ "@type": "PropertyValue", name: "nearestBTS", value: listing.bts_station }] : []),
     ],
@@ -59,11 +59,9 @@ export default function ListingSchema({ listing, url }: { listing: Listing; url:
     name: displayName,
     numberOfRooms: listing.bedrooms,
     numberOfBathroomsTotal: listing.bathrooms,
-    floorSize: {
-      "@type": "QuantitativeValue",
-      value: listing.size_sqm,
-      unitCode: "MTK", // square metre
-    },
+    ...(listing.size_sqm != null
+      ? { floorSize: { "@type": "QuantitativeValue", value: listing.size_sqm, unitCode: "MTK" } }
+      : {}),
     address: {
       "@type": "PostalAddress",
       addressLocality: listing.zone || "Bangkok",
