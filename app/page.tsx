@@ -34,7 +34,9 @@ async function getHotListings(): Promise<Listing[]> {
     const { data, error } = await supabase
       .from("listings")
       .select("*")
-      .in("status", ["available", "rented"])
+      // "Featured Residences" should showcase available stock only — a rented
+      // unit in the hero carousel reads as unavailable inventory (#31).
+      .eq("status", "available")
       .eq("is_published", true)
       .order("created_at", { ascending: false })
       .limit(6);
