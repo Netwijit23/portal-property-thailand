@@ -141,16 +141,27 @@ async function findOrCreateOwner(
 ): Promise<number | null> {
   const { name, phone, email, line, submissionNote } = input;
 
-  const orFilters = [`phone.eq.${phone}`];
-  if (email) orFilters.push(`email.eq.${email}`);
-  if (line) orFilters.push(`line_id.eq.${line}`);
+  // Look each contact field up separately with parameterised .eq() filters.
+  // The previous implementation concatenated raw user input into a single
+  // PostgREST .or() string, which let a crafted email/line value inject an
+  // extra OR condition (e.g. "a@b.c,id.eq.500") and hijack an arbitrary owner
+  // row via the service role. .eq() sends the value as an encoded parameter,
+  // so no metacharacter in the input can alter the filter structure.
+  const lookupOwner = async (column: "phone" | "email" | "line_id", value: string | null) => {
+    if (!value) return null;
+    const { data } = await service
+      .from("owners")
+      .select("id, name, phone, email, line_id, notes")
+      .eq(column, value)
+      .limit(1)
+      .maybeSingle();
+    return data;
+  };
 
-  const { data: existing } = await service
-    .from("owners")
-    .select("id, name, phone, email, line_id, notes")
-    .or(orFilters.join(","))
-    .limit(1)
-    .maybeSingle();
+  const existing =
+    (await lookupOwner("phone", phone)) ||
+    (await lookupOwner("email", email)) ||
+    (await lookupOwner("line_id", line));
 
   if (existing) {
     await service.from("owners").update({
