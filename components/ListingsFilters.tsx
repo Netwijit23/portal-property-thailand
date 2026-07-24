@@ -236,10 +236,13 @@ export default function ListingsFilters() {
           </button>
         </div>
         <div className="px-6 py-5">
+          {/* Taps only update the filters — the drawer stays open so the user
+              can combine type + zone + beds + price in one pass. Applying and
+              closing happens only via "Show results" below. */}
           <FilterContent
             current={current}
-            updateParam={(k, v) => { updateParam(k, v); setDrawerOpen(false); }}
-            clearAll={() => { clearAll(); setDrawerOpen(false); }}
+            updateParam={updateParam}
+            clearAll={clearAll}
           />
         </div>
         <div className="px-6 pb-8">
