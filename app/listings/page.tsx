@@ -107,8 +107,11 @@ const PAGE_SIZE = 24;
 // Only the columns the cards + filters need — the large description/notes
 // columns are deliberately excluded so we don't ship ~779 long text blobs to
 // render a grid of thumbnails.
+// NB: no `featured` — that column doesn't exist on the table (select("*")
+// silently omitted it; naming it explicitly errors 42703). dbToListing treats
+// a missing value as false.
 const CARD_COLUMNS =
-  "id, title, title_en, zone, zone_th, project, building_type, listing_type, status, available_from, floor, floor_number, bedrooms, bathrooms, size_sqm, sale_price, rent_price_1m, agent_name, agent_tel, agent_line, bts_mrt, photos, created_at, updated_at, availability_checked_at, featured";
+  "id, title, title_en, zone, zone_th, project, building_type, listing_type, status, available_from, floor, floor_number, bedrooms, bathrooms, size_sqm, sale_price, rent_price_1m, agent_name, agent_tel, agent_line, bts_mrt, photos, created_at, updated_at, availability_checked_at";
 
 type ListParams = {
   type?: string; zone?: string; propType?: string; bedrooms?: string;
