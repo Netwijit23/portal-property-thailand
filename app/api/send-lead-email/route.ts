@@ -219,13 +219,21 @@ export async function POST(req: NextRequest) {
 </body>
 </html>`;
 
-  await transporter.sendMail({
-    from: `"Portal Property Thailand" <${user}>`,
-    to: toOverride || "Portalproperty.th@gmail.com",
-    // Strip line breaks so user input can't inject email headers
-    subject: `${banner ? `${banner}: ` : "New Lead: "}${client_name.replace(/[\r\n]+/g, " ")} — ${(kindLabel || listing_title || "Property Enquiry").replace(/[\r\n]+/g, " ")}`,
-    html,
-  });
+  try {
+    await transporter.sendMail({
+      from: `"Portal Property Thailand" <${user}>`,
+      to: toOverride || "Portalproperty.th@gmail.com",
+      // Strip line breaks so user input can't inject email headers
+      subject: `${banner ? `${banner}: ` : "New Lead: "}${client_name.replace(/[\r\n]+/g, " ")} — ${(kindLabel || listing_title || "Property Enquiry").replace(/[\r\n]+/g, " ")}`,
+      html,
+    });
+  } catch (err) {
+    // A Gmail/auth hiccup must not surface as a 500 — the caller has already
+    // saved the lead to Supabase, so we don't want the user to see an error.
+    // Report the failure so it's observable without breaking the flow.
+    console.error("send-lead-email: sendMail failed", err);
+    return NextResponse.json({ ok: true, warning: "email failed" });
+  }
 
   return NextResponse.json({ ok: true });
 }
