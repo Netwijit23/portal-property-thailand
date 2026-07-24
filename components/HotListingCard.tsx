@@ -39,7 +39,7 @@ function formatAvailableFrom(date: string | null): string {
 
 export default function HotListingCard(props: Props) {
   const listing = props.listing;
-  const photo = listing.photos?.[0] || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80";
+  const photo = listing.photos?.[0] || null; // no stock stand-in — see placeholder below
   const { primary, secondary } = formatHotPrice(listing);
   const isBoth = listing.listing_type === "both";
   const isRent = listing.listing_type === "rent";
@@ -54,17 +54,24 @@ export default function HotListingCard(props: Props) {
         className="relative photo-grade h-[400px] rounded-2xl overflow-hidden"
         onContextMenu={(e) => e.preventDefault()}
       >
-        <PhotoWatermark>
-          <Image
-            src={photo}
-            alt={listingPhotoAlt(listing)}
-            fill
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-            sizes="300px"
-            draggable={false}
-            onContextMenu={(e) => e.preventDefault()}
-          />
-        </PhotoWatermark>
+        {photo ? (
+          <PhotoWatermark>
+            <Image
+              src={photo}
+              alt={listingPhotoAlt(listing)}
+              fill
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+              sizes="300px"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+            />
+          </PhotoWatermark>
+        ) : (
+          <div className="absolute inset-0 bg-[#F0ECE4] flex flex-col items-center justify-center gap-2 text-[#B8935A]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span className="font-sans text-[10px] tracking-wide text-[#8A8680]">Photos coming soon</span>
+          </div>
+        )}
 
         {/* Bottom gradient for text legibility */}
         <div
@@ -136,9 +143,11 @@ export default function HotListingCard(props: Props) {
             <span className="flex items-center gap-1.5 font-sans text-[11px]">
               <Bath size={13} strokeWidth={1.5} /> {listing.bathrooms}
             </span>
-            <span className="flex items-center gap-1.5 font-sans text-[11px]">
-              <Maximize2 size={13} strokeWidth={1.5} /> {listing.size_sqm} sqm
-            </span>
+            {listing.size_sqm != null && (
+              <span className="flex items-center gap-1.5 font-sans text-[11px]">
+                <Maximize2 size={13} strokeWidth={1.5} /> {listing.size_sqm} sqm
+              </span>
+            )}
           </div>
         </div>
       </div>
