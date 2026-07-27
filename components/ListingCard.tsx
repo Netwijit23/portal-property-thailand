@@ -5,6 +5,7 @@ import { Bed, Bath, Maximize2, Building2 } from "lucide-react";
 import type { Listing } from "@/lib/supabase";
 import PhotoWatermark from "@/components/PhotoWatermark";
 import SaveButton from "@/components/SaveButton";
+import CompareButton from "@/components/CompareButton";
 import { useLang } from "@/lib/i18n";
 import FreshnessBadge from "@/components/FreshnessBadge";
 import Tilt from "@/components/Tilt";
@@ -116,8 +117,23 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
             )}
           </div>
 
-          {/* Top-right: save heart */}
-          <div className="absolute top-3 right-3 z-10">
+          {/* Top-right: compare + save */}
+          <div className="absolute top-3 right-3 z-10 flex gap-1.5">
+            <CompareButton
+              listing={{
+                id: listing.id,
+                title: displayName,
+                photo: listing.photos?.[0] ?? null,
+                price: displayPrice,
+                bedrooms: listing.bedrooms,
+                bathrooms: listing.bathrooms,
+                size_sqm: listing.size_sqm,
+                bts_station: listing.bts_station,
+                zone: listing.zone,
+                type: listing.type,
+                floor: listing.floor,
+              }}
+            />
             <SaveButton
               listing={{
                 id: listing.id,
