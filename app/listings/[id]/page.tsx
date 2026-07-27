@@ -15,7 +15,7 @@ import ListingTracker from "@/components/ListingTracker";
 import { supabase, dbToListing } from "@/lib/supabase";
 import type { Listing, DBListing } from "@/lib/supabase";
 import { generateListingDescription } from "@/lib/ai";
-import { Bed, Bath, Maximize2, MapPin, Building2 } from "lucide-react";
+import { Bed, Bath, Maximize2, MapPin, Building2, ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Suspense, cache } from "react";
 import type { Metadata } from "next";
@@ -342,6 +342,15 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                       </span>
                     </div>
                   )}
+                </div>
+              ) : listing.rent_price == null && listing.sale_price == null ? (
+                // No published price — make it an action, not a dead end.
+                <div className="mb-8">
+                  <p className="font-sans text-2xl font-medium text-[#B8935A] tabular">Price on request</p>
+                  <a href="#lead-form" className="inline-flex items-center gap-1.5 mt-1.5 font-sans text-[13px] font-medium text-[#0A0A0A] underline underline-offset-4 decoration-[#B8935A]/50 hover:decoration-[#B8935A] transition-colors">
+                    Ask for the price
+                    <ArrowRight size={14} className="text-[#B8935A]" />
+                  </a>
                 </div>
               ) : (
                 <p className="font-sans text-2xl font-medium text-[#B8935A] mb-8 tabular">
