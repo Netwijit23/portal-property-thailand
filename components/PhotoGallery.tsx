@@ -13,7 +13,9 @@ const noSave = {
 // Shared classes for the clickable gallery tiles — real <button>s so they're
 // keyboard-focusable and Enter/Space-activatable, with a visible focus ring.
 function tileCls(extra = "") {
-  return `group relative overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-[#B8935A] ${extra}`.trim();
+  // Warm linen placeholder (bg-[#EFEBE3]) so a lazy-loading preview reads as an
+  // intentional surface rather than a jarring black void while it paints.
+  return `group relative overflow-hidden cursor-pointer bg-[#EFEBE3] focus:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-[#B8935A] ${extra}`.trim();
 }
 
 export default function PhotoGallery({ photos, title, heroId, altContext }: { photos: string[]; title: string; heroId?: string; altContext?: string }) {

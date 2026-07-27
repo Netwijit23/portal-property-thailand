@@ -63,7 +63,7 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
   return (
     <Link href={`/listings/${listing.id}`} className="group block">
       <Tilt className="h-full">
-      <div className="glow-hover bg-white border border-[#E8E4DC] rounded-xl overflow-hidden flex flex-col h-full">
+      <div className="glow-hover elev-1 bg-white border border-[#E8E4DC] rounded-xl overflow-hidden flex flex-col h-full">
 
         {/* Photo */}
         <div
@@ -148,15 +148,15 @@ export default function ListingCard({ listing, hero = false }: { listing: Listin
           </h3>
 
           <div>
-            <p className="font-sans text-lg font-medium text-[#B8935A] leading-none">
+            <p className="font-sans text-lg font-medium text-[#B8935A] leading-none tabular">
               {displayPrice}
             </p>
             {secondaryPrice && (
-              <p className="font-sans text-xs text-[#6B6863] mt-0.5">{secondaryPrice}</p>
+              <p className="font-sans text-xs text-[#6B6863] mt-0.5 tabular">{secondaryPrice}</p>
             )}
           </div>
 
-          <div className="flex items-center gap-3 text-[#6B6863]">
+          <div className="flex items-center gap-3 text-[#6B6863] tabular">
             <span className="flex items-center gap-1 font-sans text-xs">
               <Bed size={12} /> {listing.bedrooms === 0 ? t("studio") : `${listing.bedrooms}`}
             </span>

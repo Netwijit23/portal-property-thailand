@@ -129,7 +129,7 @@ export default function HotListingCard(props: Props) {
             {listing.building_name || listing.title}
           </p>
 
-          <p className="font-sans text-[17px] font-medium text-[#E5C795] leading-tight">
+          <p className="font-sans text-[17px] font-medium text-[#E5C795] leading-tight tabular">
             {primary}
             {secondary && (
               <span className="font-sans text-xs font-normal text-white/70 ml-2">{secondary}</span>

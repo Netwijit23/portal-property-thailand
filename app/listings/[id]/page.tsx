@@ -344,7 +344,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                   )}
                 </div>
               ) : (
-                <p className="font-sans text-2xl font-medium text-[#B8935A] mb-8">
+                <p className="font-sans text-2xl font-medium text-[#B8935A] mb-8 tabular">
                   {price}
                 </p>
               )}
@@ -359,7 +359,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
                 ] as const).map((stat) => (
                   <div key={stat.key} className="bg-[#F5F2EC] rounded-2xl p-4 text-center">
                     <div className="flex justify-center text-[#B8935A] mb-2">{stat.icon}</div>
-                    <div className="font-cormorant text-xl text-[#0A0A0A]">{stat.value}</div>
+                    <div className="font-cormorant text-xl text-[#0A0A0A] tabular">{stat.value}</div>
                     <div className="font-sans text-xs text-[#8A8680]"><T k={stat.key} /></div>
                   </div>
                 ))}
