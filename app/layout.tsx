@@ -7,6 +7,8 @@ import FloatingContact from "@/components/FloatingContact";
 import { LanguageProvider } from "@/lib/i18n";
 import OrganizationSchema from "@/components/OrganizationSchema";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import CompareTray from "@/components/CompareTray";
+import NextTopLoader from "nextjs-toploader";
 
 // Self-hosted via next/font — no render-blocking Google Fonts request
 const cormorant = Cormorant_Garamond({
@@ -52,6 +54,7 @@ export default function RootLayout({
     <ViewTransitions>
       <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
         <body className="antialiased">
+          <NextTopLoader color="#B8935A" height={2} showSpinner={false} shadow="0 0 8px #B8935A" />
           <a href="#main-content" className="skip-link">Skip to content</a>
           <OrganizationSchema />
           <LanguageProvider>
@@ -59,6 +62,7 @@ export default function RootLayout({
               {children}
             </div>
             <FloatingContact />
+            <CompareTray />
           </LanguageProvider>
           <Analytics />
           <GoogleAnalytics />
