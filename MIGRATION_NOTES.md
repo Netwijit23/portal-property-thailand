@@ -119,6 +119,22 @@ token. Recommended hardening:
 
 ---
 
+## 7. New-listing alerts — automated matching (future backend)
+
+The `/listings` "Get alerts for this search" bar (`SaveSearchAlert`) currently
+captures the visitor's email + filters as a tagged lead ("NEW-LISTING ALERT
+REQUEST") through the existing leads pipeline, so the agent is notified and can
+act manually. To make it fully automated:
+
+- Add a `saved_searches` table (email, filter params, created_at, last_sent_at).
+- A scheduled job (Vercel Cron / Supabase scheduled function) runs the stored
+  filters against new `listings` rows and emails matches.
+- Add an unsubscribe token/link per subscriber.
+
+Until then it functions as a lead-capture, not an automated alert.
+
+---
+
 ## 6. Deferred for product decision
 
 ### #11 — multi-step forms capture contact late
