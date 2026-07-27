@@ -10,6 +10,7 @@ import ListingCard from "@/components/ListingCard";
 import ListingsFilters from "@/components/ListingsFilters";
 import ListingsSearch from "@/components/ListingsSearch";
 import ActiveFilters from "@/components/ActiveFilters";
+import SaveSearchAlert from "@/components/SaveSearchAlert";
 import Reveal from "@/components/Reveal";
 import SortSelect from "@/components/SortSelect";
 import { Suspense } from "react";
@@ -249,6 +250,9 @@ export default async function ListingsPage({
             <div className="flex-1">
               <Suspense fallback={null}>
                 <ActiveFilters />
+              </Suspense>
+              <Suspense fallback={null}>
+                <SaveSearchAlert />
               </Suspense>
               <ListingsGrid result={result} initialParams={params} />
             </div>
