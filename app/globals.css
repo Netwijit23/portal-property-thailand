@@ -12,16 +12,44 @@
   --ink: #0A0A0A;
   --gold: #B8935A;
   --forest: #1A3A2A;
-  --muted: #8A8680;
+  --muted: #6B6863; /* darkened for WCAG-AA body text on paper */
   --border: #E8E4DC;
   --surface: #F5F2EC;
+
+  /* Layered, warm-tinted elevation scale — shadows carry a little of the
+     paper's warmth (rgba 20,15,8) rather than a flat neutral black, so cards
+     feel lifted off linen rather than pasted on. */
+  --elev-1: 0 1px 2px rgba(20,15,8,0.04), 0 2px 8px rgba(20,15,8,0.05);
+  --elev-2: 0 2px 4px rgba(20,15,8,0.05), 0 10px 30px rgba(20,15,8,0.09);
+  --elev-3: 0 4px 8px rgba(20,15,8,0.06), 0 24px 60px rgba(20,15,8,0.13);
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     background-color: #FAFAF8;
     color: #0A0A0A;
     font-family: var(--font-dm-sans), sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  /* Champagne text selection — a small luxury tell */
+  ::selection {
+    background: rgba(184, 147, 90, 0.22);
+    color: #0A0A0A;
+  }
+  /* One consistent, visible keyboard-focus ring site-wide */
+  :focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+  /* Anchor targets (e.g. #calculator) clear the fixed navbar */
+  :target {
+    scroll-margin-top: 84px;
   }
   /* Block long-press save / drag on all photos site-wide */
   img {
@@ -45,6 +73,32 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  /* Instrument-grade numerals: tabular, lining figures so prices, sqm, floors
+     and BTS codes align in columns and never jitter as they change. The data
+     layer of a luxury MLS should read like a precise readout. */
+  .tabular {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+  }
+  /* Consistent elevation scale (tokens defined in :root) */
+  .elev-1 { box-shadow: var(--elev-1); }
+  .elev-2 { box-shadow: var(--elev-2); }
+  .elev-3 { box-shadow: var(--elev-3); }
+}
+
+/* Faint film grain over the paper background — adds tactile, premium texture
+   without reading as a pattern. Fixed so it doesn't scroll with content. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
 }
 
 @keyframes ticker {
