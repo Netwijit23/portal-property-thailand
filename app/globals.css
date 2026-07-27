@@ -237,7 +237,38 @@ body::before {
   transform: translateY(-6px);
 }
 
+/* Honour a reduced-motion preference everywhere — the Ken Burns zoom, the
+   ticker marquee, page-fade, slide-ups and any inline animations are all
+   neutralised, not just the aurora/card transitions. */
 @media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
   .aurora-layer { animation: none; }
-  .lift, .glow-hover { transition: none; }
+}
+
+/* Skip-to-content link — visually hidden until focused, then a real target */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 100;
+  transform: translateY(-150%);
+  background: var(--ink);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  transition: transform 0.2s var(--ease-out);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+/* The skip-link target is programmatically focusable but shouldn't draw a ring
+   around the whole content region when jumped to. */
+#main-content:focus {
+  outline: none;
 }

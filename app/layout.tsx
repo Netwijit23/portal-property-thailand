@@ -52,9 +52,12 @@ export default function RootLayout({
     <ViewTransitions>
       <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
         <body className="antialiased">
+          <a href="#main-content" className="skip-link">Skip to content</a>
           <OrganizationSchema />
           <LanguageProvider>
-            {children}
+            <div id="main-content" tabIndex={-1}>
+              {children}
+            </div>
             <FloatingContact />
           </LanguageProvider>
           <Analytics />
