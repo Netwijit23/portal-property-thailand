@@ -86,7 +86,7 @@ export default function RentVsBuyCalculator() {
 
               <div className="mt-auto pt-5 border-t border-[#E8E4DC]">
                 <p className="font-sans text-[11px] uppercase tracking-[1.5px] text-[#8A8680] mb-1">Estimated monthly cost</p>
-                <p className="font-cormorant text-[32px] font-medium text-[#B8935A]">{formatTHB(monthlyRent)}</p>
+                <p className="font-cormorant text-[32px] font-medium text-[#B8935A] tabular">{formatTHB(monthlyRent)}</p>
                 <p className="font-sans text-[12px] text-[#8A8680] mt-2">
                   Upfront cash needed: {formatTHB(rentUpfront)} (refundable deposit + advance rent)
                 </p>
@@ -152,7 +152,7 @@ export default function RentVsBuyCalculator() {
 
               <div className="mt-auto pt-5 border-t border-[#E8E4DC]">
                 <p className="font-sans text-[11px] uppercase tracking-[1.5px] text-[#8A8680] mb-1">Estimated monthly cost</p>
-                <p className="font-cormorant text-[32px] font-medium text-[#B8935A]">{formatTHB(buy.monthlyPayment)}</p>
+                <p className="font-cormorant text-[32px] font-medium text-[#B8935A] tabular">{formatTHB(buy.monthlyPayment)}</p>
                 <p className="font-sans text-[12px] text-[#8A8680] mt-2">
                   Upfront cash needed: {formatTHB(buy.upfront)} (down payment + est. transfer fees)
                 </p>

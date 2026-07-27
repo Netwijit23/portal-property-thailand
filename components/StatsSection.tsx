@@ -76,7 +76,7 @@ export default async function StatsSection() {
                 end={stat.count}
                 prefix={stat.prefix}
                 suffix={stat.suffix}
-                className="block font-cormorant text-[56px] md:text-[64px] font-light text-[#E5C795] leading-none mb-4"
+                className="block font-cormorant text-[56px] md:text-[64px] font-light text-[#E5C795] leading-none mb-4 tabular"
               />
               <p className="font-sans text-[11px] uppercase tracking-[2px] text-white mb-3">
                 {stat.title}
