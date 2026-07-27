@@ -45,9 +45,9 @@ export default function Navbar() {
         } ${scrolled ? "shadow-[0_2px_24px_rgba(0,0,0,0.08)]" : ""}`}
         style={{ height: 60 }}
       >
-        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between relative">
+        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between gap-4 relative">
           {/* Logo */}
-          <Link href="/" className="flex items-baseline gap-[3px] z-10">
+          <Link href="/" className="flex items-baseline gap-[3px] z-10 shrink-0">
             <span className={`font-cormorant font-bold text-[20px] tracking-[2px] uppercase transition-colors duration-300 ${
               transparent ? "text-white" : "text-[#0A0A0A]"
             }`}>
@@ -60,13 +60,14 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Center nav links */}
-          <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+          {/* Center nav links — flex-1 centred track so they share the row
+              with the logo and actions and can never overlap them. */}
+          <div className="hidden md:flex items-center gap-5 lg:gap-7 flex-1 justify-center min-w-0">
             {NAV_LINKS.map(({ key, href }) => (
               <Link
                 key={key}
                 href={href}
-                className={`font-sans text-[11px] uppercase tracking-[1.5px] transition-colors duration-300 ${
+                className={`font-sans text-[11px] uppercase tracking-[1.5px] whitespace-nowrap transition-colors duration-300 ${
                   transparent
                     ? "text-white/80 hover:text-white"
                     : "text-[#8A8680] hover:text-[#0A0A0A]"
@@ -78,7 +79,7 @@ export default function Navbar() {
           </div>
 
           {/* Right cluster: language + saved + CTA */}
-          <div className="hidden md:flex items-center gap-4 z-10">
+          <div className="hidden md:flex items-center gap-3 z-10 shrink-0">
             <LangToggle light={transparent} />
             <Link
               href="/saved"
@@ -99,7 +100,7 @@ export default function Navbar() {
                 one rather than leaving only the seller CTA prominent (#30). */}
             <Link
               href="/listings"
-              className={`press hidden lg:inline-flex font-sans text-[13px] font-medium px-4 py-2 rounded-full transition-colors ${
+              className={`press hidden xl:inline-flex font-sans text-[13px] font-medium px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
                 transparent
                   ? "text-white/90 hover:text-white"
                   : "text-[#0A0A0A] hover:text-[#B8935A]"
