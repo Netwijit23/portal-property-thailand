@@ -395,8 +395,9 @@ export default function HeroSearch() {
           </select>
         </div>
 
-        {/* ── Row 2: Bedrooms + Budget + Search ── */}
-        <div className="flex gap-2 items-stretch">
+        {/* ── Row 2: Bedrooms + Budget + Search ── stacks on phones so the
+             bedroom chips get a full-width row instead of a clipped strip ── */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:items-stretch">
           {/* Bedroom multi-select */}
           <div className="flex items-center gap-1.5 border border-[#E8E4DC] rounded-xl px-3 py-2 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
             <span className="font-sans text-[11px] text-[#8A8680] shrink-0 pr-1">Beds</span>
@@ -425,6 +426,8 @@ export default function HeroSearch() {
             )}
           </div>
 
+          {/* Budget + Search share a row on mobile (below the bedroom chips) */}
+          <div className="flex gap-2 items-stretch">
           {/* Budget combobox */}
           <div ref={budgetRef} className="relative shrink-0">
             <button
@@ -501,10 +504,11 @@ export default function HeroSearch() {
           {/* Search button */}
           <button
             onClick={handleSearch}
-            className="press font-sans text-sm font-medium px-5 py-3 rounded-[10px] bg-[#B8935A] text-white hover:bg-[#a07d4a] transition-colors whitespace-nowrap shrink-0"
+            className="press font-sans text-sm font-medium px-5 py-3 rounded-[10px] bg-[#B8935A] text-white hover:bg-[#a07d4a] transition-colors whitespace-nowrap flex-1 sm:flex-none"
           >
             Search
           </button>
+          </div>
         </div>
       </div>
     </div>
