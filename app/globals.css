@@ -175,11 +175,13 @@ body::before {
 
 /* ─── Quiet-futurism system ──────────────────────────────────────────────── */
 
-/* Shared easings. --spring keeps a faint, tasteful overshoot for card lifts;
-   the previous 1.56 overshoot bounced noticeably, which read as dated against
-   the quiet, precise luxury direction — dialled back to a subtle 1.18. */
+/* Shared easings — both exponential ease-outs, no overshoot. A springy
+   overshoot (the original cubic-bezier(0.34, 1.56, …)) bounced like a toy,
+   which is at odds with the quiet, precise luxury direction; real objects
+   decelerate smoothly. --lift-ease is a slightly longer-tailed quint curve so
+   card lifts still read differently from general transitions. */
 :root {
-  --spring: cubic-bezier(0.34, 1.18, 0.64, 1);
+  --lift-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -220,7 +222,7 @@ body::before {
 
 /* Luminous hover ring for glass cards */
 .glow-hover {
-  transition: transform 0.5s var(--spring), box-shadow 0.5s var(--ease-out), border-color 0.5s var(--ease-out);
+  transition: transform 0.5s var(--lift-ease), box-shadow 0.5s var(--ease-out), border-color 0.5s var(--ease-out);
 }
 .glow-hover:hover {
   border-color: rgba(184, 147, 90, 0.55);
@@ -230,9 +232,9 @@ body::before {
     0 0 40px rgba(184, 147, 90, 0.12);
 }
 
-/* Spring lift for interactive cards */
+/* Smooth lift for interactive cards */
 .lift {
-  transition: transform 0.5s var(--spring), box-shadow 0.5s var(--ease-out);
+  transition: transform 0.5s var(--lift-ease), box-shadow 0.5s var(--ease-out);
   will-change: transform;
 }
 .lift:hover {
