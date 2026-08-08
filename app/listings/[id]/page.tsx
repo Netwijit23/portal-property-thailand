@@ -22,6 +22,7 @@ import type { Metadata } from "next";
 import AdminEditButton from "@/components/AdminEditButton";
 import StickyEnquireBar from "@/components/StickyEnquireBar";
 import ChatButtons from "@/components/ChatButtons";
+import ScheduleViewingButton from "@/components/ScheduleViewingButton";
 import FreshnessBadge from "@/components/FreshnessBadge";
 import { T, BiText } from "@/lib/i18n";
 
@@ -397,6 +398,22 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
             <aside id="lead-form" className="lg:w-80 shrink-0">
               <div className="mb-3">
                 <ChatButtons title={displayTitle} price={price} url={listingUrl} />
+              </div>
+              {/* Book a viewing — sits with the other contact CTAs. Terms are
+                  passed through so the form can flag a lease/budget mismatch. */}
+              <div className="mb-3">
+                <ScheduleViewingButton
+                  context={{
+                    listingId: listing.id,
+                    listingTitle: displayTitle,
+                    listingPrice: price,
+                    terms: {
+                      rentPrice: listing.rent_price,
+                      salePrice: listing.sale_price,
+                      listingType: listing.listing_type,
+                    },
+                  }}
+                />
               </div>
               <LeadForm
                 listingId={listing.id}

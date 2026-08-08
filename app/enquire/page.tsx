@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Home, Handshake, KeyRound, ArrowRight } from "lucide-react";
+import { Home, Handshake, KeyRound, ArrowRight, CalendarDays } from "lucide-react";
 import { buildMetadata } from "@/lib/seo";
+import ScheduleViewingButton from "@/components/ScheduleViewingButton";
 
 export const metadata: Metadata = buildMetadata({
   title: "Enquire — Find a Home, Co-broke, or List a Property | Portal Property",
@@ -74,6 +75,24 @@ export default function EnquireHub() {
                 </span>
               </Link>
             ))}
+          </div>
+
+          {/* Already know what you want to see? Book a viewing directly. */}
+          <div className="mt-10 bg-white rounded-2xl px-7 py-6 elev-1 flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="w-12 h-12 rounded-xl bg-[#F5F2EC] flex items-center justify-center shrink-0">
+              <CalendarDays size={20} className="text-[#B8935A]" strokeWidth={1.6} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-sans text-[10px] uppercase tracking-[2px] text-[#B8935A] mb-1.5">Ready to visit</p>
+              <h2 className="font-cormorant text-[24px] font-medium text-[#0A0A0A] leading-tight mb-1">Schedule a viewing</h2>
+              <p className="font-sans text-[13px] text-[#6B6963] leading-relaxed">
+                Pick a date that suits you and we&apos;ll confirm it personally — mention a
+                property or let us suggest one.
+              </p>
+            </div>
+            <div className="sm:w-52 shrink-0">
+              <ScheduleViewingButton />
+            </div>
           </div>
         </div>
       </main>

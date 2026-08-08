@@ -119,6 +119,30 @@ token. Recommended hardening:
 
 ---
 
+## 8. Schedule Viewing — storage + mismatch thresholds
+
+**Storage:** viewing requests are written to the existing `leads` table, tagged
+`── SCHEDULE VIEWING REQUEST ──` in `notes` (same pattern as every other form),
+so they land in the portal-admin inbox with **no migration and no admin-side
+change**. A dedicated `viewing_requests` table would need matching work in the
+separate portal-admin repo — say the word and I'll spec it.
+
+**Agent-side mismatch flag:** when a request is flagged, the notes line
+`⚠ Term mismatch · Budget mismatch` is written as the **first line** of the note
+so it's visible in the inbox preview. If you'd like a real badge column in
+portal-admin, that needs a `tags`/`flags` column plus an admin UI change.
+
+**Thresholds (both in `lib/viewing.ts`, single-line edits):**
+- `BUDGET_TOLERANCE = 0.1` — budget within ±10% of the asking price is a match.
+  Only budgets *below* the range are flagged; offering more is not a mismatch.
+- `DEFAULT_MIN_LEASE_MONTHS = 12` — **there is no per-listing minimum-lease
+  column in `listings` today**, so this business-wide policy stands in for it
+  (consistent with the existing short-stay notice). To make it per listing, add
+  e.g. `min_lease_months int` to `listings`, surface it on the `Listing` type,
+  and pass it as `terms.minLeaseMonths` — the logic already prefers it when set.
+
+---
+
 ## 7. New-listing alerts — automated matching (future backend)
 
 The `/listings` "Get alerts for this search" bar (`SaveSearchAlert`) currently
