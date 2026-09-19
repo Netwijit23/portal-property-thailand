@@ -1,8 +1,8 @@
-import { ArrowLeft, ArrowUpRight, Bath, BedDouble, Building2, CheckCircle2, Maximize2, MapPin, MessageCircle, Phone } from "lucide-react";
+import { ArrowUpRight, Bath, BedDouble, Building2, CheckCircle2, ListChecks, Maximize2, MapPin, MessageCircle, Phone } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PhotoWatermark from "@/components/PhotoWatermark";
-import ProposalChoose from "@/components/ProposalChoose";
+import { SelectionProvider, SelectToggle } from "@/components/ProposalSelection";
 import { BUSINESS } from "@/lib/business";
 import { cleanStationName } from "@/lib/supabase";
 import { displayName, hasThai, lineHref, shortDate, type SharedListing } from "@/lib/sharedListing";
@@ -13,10 +13,10 @@ export interface SharedProposal {
   client_name: string | null;
   message: string | null;
   valid_until: string | null;
-  chosen_item_id: number | null;
-  chosen_at: string | null;
+  /** When the tenant last sent their picks; null until they do. */
+  submitted_at: string | null;
   tenant_note: string | null;
-  /** Token of the viewing list this proposal came from, for the "back" link. */
+  /** Token of the viewing list the agent built from the tenant's picks, once it exists. */
   viewing_list_token: string | null;
   agent: { name: string | null; phone: string | null; line_id: string | null } | null;
   items: {
@@ -27,6 +27,8 @@ export interface SharedProposal {
     lease_term: string | null;
     move_in_date: string | null;
     terms_note: string | null;
+    /** The tenant ticked this unit ("I'd like to view this"). */
+    selected: boolean;
     listing: SharedListing;
   }[];
 }
@@ -53,9 +55,8 @@ export default function ProposalView({ token, proposal }: { token: string; propo
   const validUntil = proposal.valid_until?.slice(0, 10) ?? null;
   const expired = !!validUntil && validUntil < todayBangkok;
 
-  const chosen = proposal.items.find((i) => i.id === proposal.chosen_item_id) ?? null;
-  const chosenName = chosen ? displayName(chosen.listing) : null;
-  const anyChosen = !!chosen;
+  const picked = proposal.items.filter((i) => i.selected);
+  const submitted = !!proposal.submitted_at && picked.length > 0;
   const count = proposal.items.length;
 
   return (
@@ -63,15 +64,6 @@ export default function ProposalView({ token, proposal }: { token: string; propo
       <Navbar />
       <main id="main-content" className="pt-16 min-h-screen bg-[#FAFAF8]">
         <div className="max-w-3xl mx-auto px-5 py-10 md:py-14">
-          {proposal.viewing_list_token && (
-            <a
-              href={`/viewing/${proposal.viewing_list_token}`}
-              className="inline-flex items-center gap-1.5 font-sans text-[13px] text-[#8A8680] hover:text-[#B8935A] transition-colors mb-6"
-            >
-              <ArrowLeft size={14} /> Back to your viewing list
-            </a>
-          )}
-
           <div className="flex items-center gap-3 mb-3">
             <div className="h-px w-8 bg-[#B8935A]" />
             <span className="font-sans text-xs uppercase tracking-[0.25em] text-[#B8935A]">Your proposal</span>
@@ -87,20 +79,39 @@ export default function ProposalView({ token, proposal }: { token: string; propo
           </p>
 
           {/* Status banners */}
-          {chosen && (
+          {proposal.viewing_list_token && (
+            <a
+              href={`/viewing/${proposal.viewing_list_token}`}
+              className="mt-6 flex items-center justify-between gap-4 rounded-2xl bg-[#0A0A0A] text-white p-5 md:p-6 hover:bg-[#1a1a1a] transition-colors"
+            >
+              <div>
+                <p className="font-sans text-xs uppercase tracking-[0.25em] text-[#B8935A]">Your viewing is being arranged</p>
+                <p className="font-cormorant font-light text-2xl md:text-3xl mt-1">See your viewing list</p>
+              </div>
+              <span className="shrink-0 w-11 h-11 rounded-full bg-[#B8935A] flex items-center justify-center">
+                <ListChecks size={20} />
+              </span>
+            </a>
+          )}
+          {submitted && (
             <div className="mt-6 flex items-start gap-3 rounded-2xl bg-[#E6F4EC] border border-[#1F7A4D]/25 p-5" role="status">
               <CheckCircle2 size={22} className="text-[#1F7A4D] shrink-0 mt-0.5" />
               <div className="font-sans text-[#1F5C3B]">
-                <p className="font-medium">You chose {chosenName}</p>
+                <p className="font-medium">You picked {picked.length} unit{picked.length === 1 ? "" : "s"} to view</p>
                 <p className="text-sm opacity-85 mt-0.5">
-                  {agentName} has been notified and will be in touch shortly to arrange the next steps.
-                  {!expired && " You can still switch to a different option below."}
+                  {agentName} will confirm viewing times with the owners and be in touch.
+                  {!expired && " You can still change your picks below."}
                 </p>
                 {proposal.tenant_note && <p className="text-sm mt-2 italic opacity-90">&ldquo;{proposal.tenant_note}&rdquo;</p>}
               </div>
             </div>
           )}
-          {expired && !chosen && (
+          {!submitted && !expired && count > 0 && (
+            <p className="mt-6 font-sans text-[15px] leading-relaxed text-[#3A3835]">
+              Tap <span className="font-medium">&ldquo;I&apos;d like to view this&rdquo;</span> on any unit that interests you, then send your picks to {agentName}. You don&apos;t need to decide on anything yet — this is just to arrange viewings.
+            </p>
+          )}
+          {expired && !submitted && (
             <div className="mt-6 rounded-2xl bg-[#FFF3D6] border border-[#8A5A00]/25 p-5 font-sans text-[#6B4500]" role="status">
               <p className="font-medium">This proposal has expired</p>
               <p className="text-sm mt-0.5">Message {agentName} below and they&apos;ll refresh it for you.</p>
@@ -116,11 +127,17 @@ export default function ProposalView({ token, proposal }: { token: string; propo
           {count === 0 ? (
             <p className="mt-10 font-sans text-sm text-[#8A8680]">No options have been added yet — check back soon.</p>
           ) : (
+            <SelectionProvider
+              token={token}
+              initialSelected={picked.map((i) => i.id)}
+              initialNote={proposal.tenant_note ?? ""}
+              expired={expired}
+              agentName={agentName}
+            >
             <ol className="mt-10 space-y-10">
               {proposal.items.map((item, index) => {
                 const l = item.listing;
                 const name = displayName(l);
-                const isChosen = item.id === proposal.chosen_item_id;
                 const zone = l.zone && !hasThai(l.zone) ? l.zone.split(",")[0].trim() : null;
                 const station = cleanStationName(hasThai(l.bts_mrt) ? null : l.bts_mrt);
                 const floor = l.floor ?? l.floor_number;
@@ -130,7 +147,7 @@ export default function ProposalView({ token, proposal }: { token: string; propo
                 const terms = [
                   { label: "Deposit", value: item.deposit },
                   { label: "Lease term", value: item.lease_term },
-                  { label: "Move-in", value: item.move_in_date ? shortDate(item.move_in_date) : null },
+                  { label: "Available from", value: item.move_in_date ? shortDate(item.move_in_date) : null },
                 ].filter((t) => t.value);
                 const facts = [
                   { icon: BedDouble, label: l.bedrooms === 0 ? "Studio" : l.bedrooms != null ? `${l.bedrooms} bed` : null },
@@ -143,7 +160,7 @@ export default function ProposalView({ token, proposal }: { token: string; propo
                 return (
                   <li key={item.id}>
                     <article
-                      className={`bg-white rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.03)] border ${isChosen ? "border-[#1F7A4D] ring-2 ring-[#1F7A4D]/30" : "border-[#E8E4DC]"}`}
+                      className="bg-white rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.03)] border border-[#E8E4DC]"
                     >
                       <div className="relative photo-grade aspect-[16/10] bg-[#F0ECE4] overflow-hidden">
                         {photos[0] ? (
@@ -164,11 +181,6 @@ export default function ProposalView({ token, proposal }: { token: string; propo
                         <span className="absolute top-3 left-3 z-10 w-9 h-9 rounded-full bg-[#B8935A] text-white font-sans text-sm font-medium flex items-center justify-center shadow-md">
                           {index + 1}
                         </span>
-                        {isChosen && (
-                          <span className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-[#1F7A4D] text-white font-sans text-xs font-medium px-3 py-1.5 shadow-md">
-                            <CheckCircle2 size={14} /> Your choice
-                          </span>
-                        )}
                       </div>
 
                       {photos.length > 1 && (
@@ -251,28 +263,20 @@ export default function ProposalView({ token, proposal }: { token: string; propo
                           </a>
                         </div>
 
-                        <ProposalChoose
-                          token={token}
-                          itemId={item.id}
-                          project={name}
-                          isChosen={isChosen}
-                          anyChosen={anyChosen}
-                          disabled={expired}
-                          initialNote={isChosen ? proposal.tenant_note ?? "" : ""}
-                          agentName={agentName}
-                        />
+                        <SelectToggle itemId={item.id} />
                       </div>
                     </article>
                   </li>
                 );
               })}
             </ol>
+            </SelectionProvider>
           )}
 
           <section className="mt-12 rounded-2xl bg-[#0A0A0A] text-white p-6 md:p-8">
             <p className="font-sans text-xs uppercase tracking-[0.25em] text-[#B8935A]">Questions?</p>
             <h2 className="font-cormorant font-light text-3xl mt-2">Talk to {agentName}</h2>
-            <p className="font-sans text-sm text-white/65 mt-2">Want to negotiate a term, see a unit again, or change your choice? Just message me.</p>
+            <p className="font-sans text-sm text-white/65 mt-2">Want other options, a different area or budget, or to change your picks? Just message me.</p>
             <div className="flex flex-wrap gap-3 mt-5">
               <a
                 href={lineHref(agent?.line_id)}

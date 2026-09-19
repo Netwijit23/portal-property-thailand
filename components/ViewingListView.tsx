@@ -1,4 +1,4 @@
-import { ArrowUpRight, Bath, BedDouble, Building2, CheckCircle2, Hourglass, Maximize2, MapPin, Phone, MessageCircle } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Bath, BedDouble, Building2, CheckCircle2, Hourglass, Maximize2, MapPin, Phone, MessageCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PhotoWatermark from "@/components/PhotoWatermark";
@@ -84,15 +84,9 @@ export default function ViewingListView({ list }: { list: SharedList }) {
           {list.proposal_token && (
             <a
               href={`/proposal/${list.proposal_token}`}
-              className="mt-6 flex items-center justify-between gap-4 rounded-2xl bg-[#0A0A0A] text-white p-5 md:p-6 hover:bg-[#1a1a1a] transition-colors"
+              className="mt-5 inline-flex items-center gap-1.5 font-sans text-[13px] text-[#8A8680] hover:text-[#B8935A] transition-colors"
             >
-              <div>
-                <p className="font-sans text-xs uppercase tracking-[0.25em] text-[#B8935A]">Your proposal is ready</p>
-                <p className="font-cormorant font-light text-2xl md:text-3xl mt-1">Review the terms and choose your unit</p>
-              </div>
-              <span className="shrink-0 w-11 h-11 rounded-full bg-[#B8935A] flex items-center justify-center">
-                <ArrowUpRight size={20} />
-              </span>
+              <ArrowLeft size={14} /> See all the units proposed to you
             </a>
           )}
 
