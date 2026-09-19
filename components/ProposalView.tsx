@@ -1,47 +1,34 @@
-import { ArrowUpRight, Bath, BedDouble, Building2, CheckCircle2, Hourglass, Maximize2, MapPin, Phone, MessageCircle } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Bath, BedDouble, Building2, CheckCircle2, Maximize2, MapPin, MessageCircle, Phone } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PhotoWatermark from "@/components/PhotoWatermark";
+import ProposalChoose from "@/components/ProposalChoose";
 import { BUSINESS } from "@/lib/business";
 import { cleanStationName } from "@/lib/supabase";
 import { displayName, hasThai, lineHref, shortDate, type SharedListing } from "@/lib/sharedListing";
 
-export type { SharedListing };
-
-export interface SharedList {
+// Shape returned by the get_proposal() database function (no owner contact details).
+export interface SharedProposal {
   title: string;
   client_name: string | null;
   message: string | null;
-  viewing_date: string | null;
-  /** Token of the proposal linked to this list, once the agent has created one. */
-  proposal_token?: string | null;
+  valid_until: string | null;
+  chosen_item_id: number | null;
+  chosen_at: string | null;
+  tenant_note: string | null;
+  /** Token of the viewing list this proposal came from, for the "back" link. */
+  viewing_list_token: string | null;
   agent: { name: string | null; phone: string | null; line_id: string | null } | null;
   items: {
+    id: number;
     position: number;
-    note: string | null;
-    /** "HH:MM:SS", or null when no time has been proposed yet. */
-    viewing_time?: string | null;
-    /** Whether the owner has confirmed the viewing time. Absent on lists served
-     *  before the owner-confirmation migration — then no status is shown. */
-    owner_status?: "pending" | "confirmed";
+    monthly_price: number | null;
+    deposit: string | null;
+    lease_term: string | null;
+    move_in_date: string | null;
+    terms_note: string | null;
     listing: SharedListing;
   }[];
-}
-
-function priceLabel(l: SharedListing): string {
-  const rent = l.rent_price_1m ? `฿${l.rent_price_1m.toLocaleString("en-US")} / month` : null;
-  const sale = l.sale_price ? `฿${l.sale_price.toLocaleString("en-US")}` : null;
-  if (l.listing_type === "sale") return sale ?? "Price on request";
-  if (l.listing_type === "rent") return rent ?? "Price on request";
-  if (rent && sale) return `${rent}  ·  ${sale} to buy`;
-  return rent ?? sale ?? "Price on request";
-}
-
-function formatViewingDate(value: string | null): string | null {
-  if (!value) return null;
-  const d = new Date(`${value.slice(0, 10)}T00:00:00+07:00`);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Bangkok" });
 }
 
 const STATUS_NOTICE: Record<string, string> = {
@@ -50,83 +37,101 @@ const STATUS_NOTICE: Record<string, string> = {
   sold: "Recently sold — ask your agent about similar units",
 };
 
-export default function ViewingListView({ list }: { list: SharedList }) {
-  const agent = list.agent;
+function longDate(value: string | null): string | null {
+  if (!value) return null;
+  const d = new Date(`${value.slice(0, 10)}T00:00:00+07:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bangkok" });
+}
+
+export default function ProposalView({ token, proposal }: { token: string; proposal: SharedProposal }) {
+  const agent = proposal.agent;
   const agentName = agent?.name?.trim() || "Your agent";
   const phone = agent?.phone?.trim() || BUSINESS.phoneE164;
-  const dateLabel = formatViewingDate(list.viewing_date);
-  const tracked = list.items.filter((i) => i.owner_status);
-  const confirmedCount = tracked.filter((i) => i.owner_status === "confirmed").length;
-  const pendingCount = tracked.length - confirmedCount;
-  const count = list.items.length;
+
+  const todayBangkok = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  const validUntil = proposal.valid_until?.slice(0, 10) ?? null;
+  const expired = !!validUntil && validUntil < todayBangkok;
+
+  const chosen = proposal.items.find((i) => i.id === proposal.chosen_item_id) ?? null;
+  const chosenName = chosen ? displayName(chosen.listing) : null;
+  const anyChosen = !!chosen;
+  const count = proposal.items.length;
 
   return (
     <>
       <Navbar />
       <main id="main-content" className="pt-16 min-h-screen bg-[#FAFAF8]">
         <div className="max-w-3xl mx-auto px-5 py-10 md:py-14">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-px w-8 bg-[#B8935A]" />
-            <span className="font-sans text-xs uppercase tracking-[0.25em] text-[#B8935A]">Private viewing list</span>
-          </div>
-          <h1 className="font-cormorant font-light text-4xl md:text-5xl text-[#0A0A0A] leading-tight">{list.title}</h1>
-          <p className="font-sans text-sm text-[#8A8680] mt-3">
-            {[
-              list.client_name ? `Prepared for ${list.client_name}` : null,
-              agent?.name ? `by ${agent.name}` : null,
-              dateLabel,
-              tracked.length > 0 ? `${confirmedCount} of ${tracked.length} confirmed by owners` : null,
-              `${count} ${count === 1 ? "property" : "properties"}`,
-            ].filter(Boolean).join("  ·  ")}
-          </p>
-
-          {list.proposal_token && (
+          {proposal.viewing_list_token && (
             <a
-              href={`/proposal/${list.proposal_token}`}
-              className="mt-6 flex items-center justify-between gap-4 rounded-2xl bg-[#0A0A0A] text-white p-5 md:p-6 hover:bg-[#1a1a1a] transition-colors"
+              href={`/viewing/${proposal.viewing_list_token}`}
+              className="inline-flex items-center gap-1.5 font-sans text-[13px] text-[#8A8680] hover:text-[#B8935A] transition-colors mb-6"
             >
-              <div>
-                <p className="font-sans text-xs uppercase tracking-[0.25em] text-[#B8935A]">Your proposal is ready</p>
-                <p className="font-cormorant font-light text-2xl md:text-3xl mt-1">Review the terms and choose your unit</p>
-              </div>
-              <span className="shrink-0 w-11 h-11 rounded-full bg-[#B8935A] flex items-center justify-center">
-                <ArrowUpRight size={20} />
-              </span>
+              <ArrowLeft size={14} /> Back to your viewing list
             </a>
           )}
 
-          {pendingCount > 0 && (
-            <p className="mt-5 flex items-start gap-2 font-sans text-[13px] leading-relaxed text-[#8A5A00]">
-              <Hourglass size={15} className="mt-0.5 shrink-0" />
-              <span>
-                Each property shows whether its owner has confirmed the viewing time. Times marked
-                &ldquo;awaiting&rdquo; are proposed and may still change &mdash; we&apos;ll update this page as owners reply.
-              </span>
-            </p>
-          )}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-px w-8 bg-[#B8935A]" />
+            <span className="font-sans text-xs uppercase tracking-[0.25em] text-[#B8935A]">Your proposal</span>
+          </div>
+          <h1 className="font-cormorant font-light text-4xl md:text-5xl text-[#0A0A0A] leading-tight">{proposal.title}</h1>
+          <p className="font-sans text-sm text-[#8A8680] mt-3">
+            {[
+              proposal.client_name ? `Prepared for ${proposal.client_name}` : null,
+              agent?.name ? `by ${agent.name}` : null,
+              validUntil ? `${expired ? "Expired" : "Valid until"} ${longDate(validUntil)}` : null,
+              `${count} ${count === 1 ? "option" : "options"}`,
+            ].filter(Boolean).join("  ·  ")}
+          </p>
 
-          {list.message && (
-            <div className="mt-6 rounded-xl bg-white border border-[#E8E4DC] p-5 font-sans text-[15px] leading-relaxed text-[#3A3835] whitespace-pre-line">
-              {list.message}
+          {/* Status banners */}
+          {chosen && (
+            <div className="mt-6 flex items-start gap-3 rounded-2xl bg-[#E6F4EC] border border-[#1F7A4D]/25 p-5" role="status">
+              <CheckCircle2 size={22} className="text-[#1F7A4D] shrink-0 mt-0.5" />
+              <div className="font-sans text-[#1F5C3B]">
+                <p className="font-medium">You chose {chosenName}</p>
+                <p className="text-sm opacity-85 mt-0.5">
+                  {agentName} has been notified and will be in touch shortly to arrange the next steps.
+                  {!expired && " You can still switch to a different option below."}
+                </p>
+                {proposal.tenant_note && <p className="text-sm mt-2 italic opacity-90">&ldquo;{proposal.tenant_note}&rdquo;</p>}
+              </div>
+            </div>
+          )}
+          {expired && !chosen && (
+            <div className="mt-6 rounded-2xl bg-[#FFF3D6] border border-[#8A5A00]/25 p-5 font-sans text-[#6B4500]" role="status">
+              <p className="font-medium">This proposal has expired</p>
+              <p className="text-sm mt-0.5">Message {agentName} below and they&apos;ll refresh it for you.</p>
             </div>
           )}
 
-          {/* Units */}
+          {proposal.message && (
+            <div className="mt-6 rounded-xl bg-white border border-[#E8E4DC] p-5 font-sans text-[15px] leading-relaxed text-[#3A3835] whitespace-pre-line">
+              {proposal.message}
+            </div>
+          )}
+
           {count === 0 ? (
-            <p className="mt-10 font-sans text-sm text-[#8A8680]">No properties have been added to this list yet — check back soon.</p>
+            <p className="mt-10 font-sans text-sm text-[#8A8680]">No options have been added yet — check back soon.</p>
           ) : (
             <ol className="mt-10 space-y-10">
-              {list.items.map((item, index) => {
+              {proposal.items.map((item, index) => {
                 const l = item.listing;
                 const name = displayName(l);
+                const isChosen = item.id === proposal.chosen_item_id;
                 const zone = l.zone && !hasThai(l.zone) ? l.zone.split(",")[0].trim() : null;
                 const station = cleanStationName(hasThai(l.bts_mrt) ? null : l.bts_mrt);
                 const floor = l.floor ?? l.floor_number;
                 const photos = (l.photos ?? []).filter(Boolean);
                 const notice = l.status ? STATUS_NOTICE[l.status] : undefined;
-                const description = l.website_description || l.description_en;
                 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name} Bangkok`)}`;
+                const terms = [
+                  { label: "Deposit", value: item.deposit },
+                  { label: "Lease term", value: item.lease_term },
+                  { label: "Move-in", value: item.move_in_date ? shortDate(item.move_in_date) : null },
+                ].filter((t) => t.value);
                 const facts = [
                   { icon: BedDouble, label: l.bedrooms === 0 ? "Studio" : l.bedrooms != null ? `${l.bedrooms} bed` : null },
                   { icon: Bath, label: l.bathrooms ? `${l.bathrooms} bath` : null },
@@ -136,9 +141,10 @@ export default function ViewingListView({ list }: { list: SharedList }) {
                 const tags = [l.pet_allowed ? "Pets welcome" : null, l.foreigner_quota ? "Foreign quota available" : null].filter(Boolean);
 
                 return (
-                  <li key={`${item.position}-${l.id}`}>
-                    <article className="bg-white border border-[#E8E4DC] rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-                      {/* Hero photo */}
+                  <li key={item.id}>
+                    <article
+                      className={`bg-white rounded-2xl overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.03)] border ${isChosen ? "border-[#1F7A4D] ring-2 ring-[#1F7A4D]/30" : "border-[#E8E4DC]"}`}
+                    >
                       <div className="relative photo-grade aspect-[16/10] bg-[#F0ECE4] overflow-hidden">
                         {photos[0] ? (
                           <PhotoWatermark>
@@ -158,6 +164,11 @@ export default function ViewingListView({ list }: { list: SharedList }) {
                         <span className="absolute top-3 left-3 z-10 w-9 h-9 rounded-full bg-[#B8935A] text-white font-sans text-sm font-medium flex items-center justify-center shadow-md">
                           {index + 1}
                         </span>
+                        {isChosen && (
+                          <span className="absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-[#1F7A4D] text-white font-sans text-xs font-medium px-3 py-1.5 shadow-md">
+                            <CheckCircle2 size={14} /> Your choice
+                          </span>
+                        )}
                       </div>
 
                       {photos.length > 1 && (
@@ -175,46 +186,35 @@ export default function ViewingListView({ list }: { list: SharedList }) {
                       )}
 
                       <div className="p-5 md:p-6">
-                        {item.owner_status && (() => {
-                          const confirmed = item.owner_status === "confirmed";
-                          const date = shortDate(list.viewing_date);
-                          const time = item.viewing_time ? item.viewing_time.slice(0, 5) : null;
-                          const detail = time
-                            ? `${confirmed ? "Viewing" : "Proposed"}: ${[date, time].filter(Boolean).join(" · ")}`
-                            : confirmed
-                              ? (date ? `Viewing confirmed for ${date}` : "Viewing confirmed")
-                              : (date ? `${date} · time to be confirmed` : "Viewing time to be confirmed");
-                          return (
-                            <div
-                              className={`mb-4 flex items-start gap-2.5 rounded-lg px-4 py-3 font-sans text-sm border ${
-                                confirmed ? "bg-[#E6F4EC] border-[#1F7A4D]/25 text-[#1F5C3B]" : "bg-[#FFF3D6] border-[#8A5A00]/25 text-[#6B4500]"
-                              }`}
-                              role="status"
-                            >
-                              {confirmed ? <CheckCircle2 size={18} className="mt-px shrink-0" /> : <Hourglass size={18} className="mt-px shrink-0" />}
-                              <div>
-                                <p className="font-medium">{confirmed ? "Confirmed by owner" : "Awaiting owner confirmation"}</p>
-                                <p className="text-[13px] opacity-85">{detail}</p>
-                              </div>
-                            </div>
-                          );
-                        })()}
-                        {item.note && (
-                          <div className="mb-4 rounded-lg bg-[#B8935A]/10 border border-[#B8935A]/25 px-4 py-3 font-sans text-sm text-[#5C4520]">
-                            <span className="font-medium">From {agentName}: </span>{item.note}
-                          </div>
-                        )}
-
                         <h2 className="font-cormorant text-3xl text-[#0A0A0A] leading-tight">{name}</h2>
                         <p className="font-sans text-sm text-[#8A8680] mt-1 flex items-center gap-1.5">
                           <MapPin size={14} className="text-[#B8935A] shrink-0" />
                           {[zone, station ? `BTS ${station}` : null].filter(Boolean).join("  ·  ") || "Bangkok"}
                         </p>
 
-                        <p className="font-cormorant text-2xl text-[#B8935A] mt-4">{priceLabel(l)}</p>
+                        <p className="font-cormorant text-3xl text-[#B8935A] mt-4">
+                          {item.monthly_price ? `฿${item.monthly_price.toLocaleString("en-US")} / month` : "Price to be confirmed"}
+                        </p>
+
+                        {terms.length > 0 && (
+                          <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+                            {terms.map((t) => (
+                              <div key={t.label} className="rounded-lg bg-[#FAF8F4] border border-[#E8E4DC] px-3.5 py-2.5">
+                                <dt className="font-sans text-[11px] uppercase tracking-wide text-[#8A8680]">{t.label}</dt>
+                                <dd className="font-sans text-sm font-medium text-[#0A0A0A] mt-0.5">{t.value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                        )}
+
+                        {item.terms_note && (
+                          <div className="mt-4 rounded-lg bg-[#B8935A]/10 border border-[#B8935A]/25 px-4 py-3 font-sans text-sm text-[#5C4520] whitespace-pre-line">
+                            {item.terms_note}
+                          </div>
+                        )}
 
                         {facts.length > 0 && (
-                          <ul className="flex flex-wrap gap-x-5 gap-y-2 mt-3 font-sans text-sm text-[#3A3835]">
+                          <ul className="flex flex-wrap gap-x-5 gap-y-2 mt-4 font-sans text-sm text-[#3A3835]">
                             {facts.map(({ icon: Icon, label }) => (
                               <li key={label} className="flex items-center gap-1.5"><Icon size={15} className="text-[#8A8680]" />{label}</li>
                             ))}
@@ -226,14 +226,8 @@ export default function ViewingListView({ list }: { list: SharedList }) {
                             {tags.map((t) => (
                               <span key={t} className="font-sans text-xs px-2.5 py-1 rounded-full bg-[#F0ECE4] text-[#5C5850]">{t}</span>
                             ))}
-                            {notice && (
-                              <span className="font-sans text-xs px-2.5 py-1 rounded-full bg-[#7B2020]/10 text-[#7B2020]">{notice}</span>
-                            )}
+                            {notice && <span className="font-sans text-xs px-2.5 py-1 rounded-full bg-[#7B2020]/10 text-[#7B2020]">{notice}</span>}
                           </div>
-                        )}
-
-                        {description && (
-                          <p className="font-sans text-sm leading-relaxed text-[#5C5850] mt-4 line-clamp-4">{description}</p>
                         )}
 
                         <div className="flex flex-wrap gap-3 mt-5">
@@ -242,7 +236,7 @@ export default function ViewingListView({ list }: { list: SharedList }) {
                               href={`/listings/${l.id}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 font-sans text-[13px] font-medium px-5 py-2.5 rounded-full bg-[#0A0A0A] text-white hover:bg-[#B8935A] transition-colors"
+                              className="inline-flex items-center gap-1.5 font-sans text-[13px] font-medium px-5 py-2.5 rounded-full border border-[#E8E4DC] text-[#3A3835] hover:border-[#B8935A] transition-colors"
                             >
                               Full details <ArrowUpRight size={14} />
                             </a>
@@ -256,6 +250,17 @@ export default function ViewingListView({ list }: { list: SharedList }) {
                             <MapPin size={14} /> Directions
                           </a>
                         </div>
+
+                        <ProposalChoose
+                          token={token}
+                          itemId={item.id}
+                          project={name}
+                          isChosen={isChosen}
+                          anyChosen={anyChosen}
+                          disabled={expired}
+                          initialNote={isChosen ? proposal.tenant_note ?? "" : ""}
+                          agentName={agentName}
+                        />
                       </div>
                     </article>
                   </li>
@@ -264,11 +269,10 @@ export default function ViewingListView({ list }: { list: SharedList }) {
             </ol>
           )}
 
-          {/* Contact */}
           <section className="mt-12 rounded-2xl bg-[#0A0A0A] text-white p-6 md:p-8">
             <p className="font-sans text-xs uppercase tracking-[0.25em] text-[#B8935A]">Questions?</p>
             <h2 className="font-cormorant font-light text-3xl mt-2">Talk to {agentName}</h2>
-            <p className="font-sans text-sm text-white/65 mt-2">Want to change the order, add a unit, or move the time? Just message me.</p>
+            <p className="font-sans text-sm text-white/65 mt-2">Want to negotiate a term, see a unit again, or change your choice? Just message me.</p>
             <div className="flex flex-wrap gap-3 mt-5">
               <a
                 href={lineHref(agent?.line_id)}
