@@ -26,8 +26,9 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
 
   const count = proposal.items.length;
   const title = proposal.client_name ? `${proposal.title} — ${proposal.client_name}` : proposal.title;
-  const description = `A private proposal${proposal.agent?.name ? ` from ${proposal.agent.name}` : ""} — ${count} option${count === 1 ? "" : "s"} to choose from.`;
-  const image = proposal.items.map((i) => i.listing.photos?.[0]).find(Boolean) ?? undefined;
+  const description = `A private proposal${proposal.agent?.name ? ` from ${proposal.agent.name}` : ""} — ${count} unit${count === 1 ? "" : "s"} picked for you to view.`;
+  // The agent's chosen cover, else the first unit's first photo.
+  const image = proposal.cover_url || proposal.items.map((i) => i.listing.photos?.[0]).find(Boolean) || undefined;
 
   return {
     title: `${title} | ${BUSINESS.name}`,

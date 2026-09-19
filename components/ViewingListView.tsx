@@ -13,6 +13,8 @@ export interface SharedList {
   client_name: string | null;
   message: string | null;
   viewing_date: string | null;
+  /** Link-preview image the agent chose; null/absent = use the first unit's photo. */
+  cover_url?: string | null;
   /** Token of the proposal linked to this list, once the agent has created one. */
   proposal_token?: string | null;
   agent: { name: string | null; phone: string | null; line_id: string | null } | null;

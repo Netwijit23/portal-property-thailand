@@ -27,7 +27,8 @@ export async function generateMetadata({ params }: { params: Promise<{ token: st
   const count = list.items.length;
   const title = list.client_name ? `${list.title} — ${list.client_name}` : list.title;
   const description = `A private viewing list${list.agent?.name ? ` from ${list.agent.name}` : ""} — ${count} propert${count === 1 ? "y" : "ies"} in Bangkok.`;
-  const image = list.items.map((i) => i.listing.photos?.[0]).find(Boolean) ?? undefined;
+  // The agent's chosen cover, else the first unit's first photo.
+  const image = list.cover_url || list.items.map((i) => i.listing.photos?.[0]).find(Boolean) || undefined;
 
   return {
     title: `${title} | ${BUSINESS.name}`,

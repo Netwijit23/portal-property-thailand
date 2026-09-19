@@ -13,6 +13,8 @@ export interface SharedProposal {
   client_name: string | null;
   message: string | null;
   valid_until: string | null;
+  /** Link-preview image the agent chose; null/absent = use the first unit's photo. */
+  cover_url?: string | null;
   /** When the tenant last sent their picks; null until they do. */
   submitted_at: string | null;
   tenant_note: string | null;
