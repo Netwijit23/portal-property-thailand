@@ -1,4 +1,4 @@
-import { ArrowUpRight, Bath, BedDouble, Building2, Maximize2, MapPin, Phone, MessageCircle } from "lucide-react";
+import { ArrowUpRight, Bath, BedDouble, Building2, CheckCircle2, Hourglass, Maximize2, MapPin, Phone, MessageCircle } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PhotoWatermark from "@/components/PhotoWatermark";
@@ -39,7 +39,16 @@ export interface SharedList {
   message: string | null;
   viewing_date: string | null;
   agent: { name: string | null; phone: string | null; line_id: string | null } | null;
-  items: { position: number; note: string | null; listing: SharedListing }[];
+  items: {
+    position: number;
+    note: string | null;
+    /** "HH:MM:SS", or null when no time has been proposed yet. */
+    viewing_time?: string | null;
+    /** Whether the owner has confirmed the viewing time. Absent on lists served
+     *  before the owner-confirmation migration — then no status is shown. */
+    owner_status?: "pending" | "confirmed";
+    listing: SharedListing;
+  }[];
 }
 
 const hasThai = (s: string | null | undefined) => !!s && /[฀-๿]/.test(s);
@@ -64,6 +73,13 @@ function lineHref(lineId: string | null | undefined): string {
   return id.startsWith("@") ? `https://line.me/R/ti/p/${id}` : `https://line.me/ti/p/~${id}`;
 }
 
+function shortDate(value: string | null): string | null {
+  if (!value) return null;
+  const d = new Date(`${value.slice(0, 10)}T00:00:00+07:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Bangkok" });
+}
+
 function formatViewingDate(value: string | null): string | null {
   if (!value) return null;
   const d = new Date(`${value.slice(0, 10)}T00:00:00+07:00`);
@@ -82,6 +98,9 @@ export default function ViewingListView({ list }: { list: SharedList }) {
   const agentName = agent?.name?.trim() || "Your agent";
   const phone = agent?.phone?.trim() || BUSINESS.phoneE164;
   const dateLabel = formatViewingDate(list.viewing_date);
+  const tracked = list.items.filter((i) => i.owner_status);
+  const confirmedCount = tracked.filter((i) => i.owner_status === "confirmed").length;
+  const pendingCount = tracked.length - confirmedCount;
   const count = list.items.length;
 
   return (
@@ -100,9 +119,20 @@ export default function ViewingListView({ list }: { list: SharedList }) {
               list.client_name ? `Prepared for ${list.client_name}` : null,
               agent?.name ? `by ${agent.name}` : null,
               dateLabel,
+              tracked.length > 0 ? `${confirmedCount} of ${tracked.length} confirmed by owners` : null,
               `${count} ${count === 1 ? "property" : "properties"}`,
             ].filter(Boolean).join("  ·  ")}
           </p>
+
+          {pendingCount > 0 && (
+            <p className="mt-5 flex items-start gap-2 font-sans text-[13px] leading-relaxed text-[#8A5A00]">
+              <Hourglass size={15} className="mt-0.5 shrink-0" />
+              <span>
+                Each property shows whether its owner has confirmed the viewing time. Times marked
+                &ldquo;awaiting&rdquo; are proposed and may still change &mdash; we&apos;ll update this page as owners reply.
+              </span>
+            </p>
+          )}
 
           {list.message && (
             <div className="mt-6 rounded-xl bg-white border border-[#E8E4DC] p-5 font-sans text-[15px] leading-relaxed text-[#3A3835] whitespace-pre-line">
@@ -173,6 +203,30 @@ export default function ViewingListView({ list }: { list: SharedList }) {
                       )}
 
                       <div className="p-5 md:p-6">
+                        {item.owner_status && (() => {
+                          const confirmed = item.owner_status === "confirmed";
+                          const date = shortDate(list.viewing_date);
+                          const time = item.viewing_time ? item.viewing_time.slice(0, 5) : null;
+                          const detail = time
+                            ? `${confirmed ? "Viewing" : "Proposed"}: ${[date, time].filter(Boolean).join(" · ")}`
+                            : confirmed
+                              ? (date ? `Viewing confirmed for ${date}` : "Viewing confirmed")
+                              : (date ? `${date} · time to be confirmed` : "Viewing time to be confirmed");
+                          return (
+                            <div
+                              className={`mb-4 flex items-start gap-2.5 rounded-lg px-4 py-3 font-sans text-sm border ${
+                                confirmed ? "bg-[#E6F4EC] border-[#1F7A4D]/25 text-[#1F5C3B]" : "bg-[#FFF3D6] border-[#8A5A00]/25 text-[#6B4500]"
+                              }`}
+                              role="status"
+                            >
+                              {confirmed ? <CheckCircle2 size={18} className="mt-px shrink-0" /> : <Hourglass size={18} className="mt-px shrink-0" />}
+                              <div>
+                                <p className="font-medium">{confirmed ? "Confirmed by owner" : "Awaiting owner confirmation"}</p>
+                                <p className="text-[13px] opacity-85">{detail}</p>
+                              </div>
+                            </div>
+                          );
+                        })()}
                         {item.note && (
                           <div className="mb-4 rounded-lg bg-[#B8935A]/10 border border-[#B8935A]/25 px-4 py-3 font-sans text-sm text-[#5C4520]">
                             <span className="font-medium">From {agentName}: </span>{item.note}
